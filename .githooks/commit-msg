@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Establecemos tipos permitidos 
+tipos_validos="feat|fix|chore|test|build" 
+
+# Expresión regular a validar 
+regex="^(${tipos_validos})(\([a-zA-Z0-9_-]+\))?(!)?: .{5,}" 
+
+# Leemos el mensaje del commit desde el archivo temporal que Git genera
+mensaje_commit=$(cat "$1")
+
+# Verificamos si el mensaje de commit cumple con la expresión 
+if ! [[ "$mensaje_commit" =~ $regex ]]; then 
+    echo "ERROR: El mensaje del commit no sigue conventional commits" 
+    exit 1 # Evitar el commit si el formato es incorrecto 
+fi
