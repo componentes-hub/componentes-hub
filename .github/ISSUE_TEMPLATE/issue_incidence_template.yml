@@ -1,4 +1,4 @@
-name: "Incidencia"
+name: "Incidence Template"
 description: "Crea una issue para una incidencia específica sin detalles innecesarios."
 title: "I<Número de la incidencia> <Nombre de la incidencia>"
 body:

@@ -1,4 +1,4 @@
-name: "Work Item Template"
+name: "Work Item Task Template"
 description: "Crea una tarea de un Work Item (WI) sin detalles innecesarios."
 title: "WI<Número del WI>-T<Número de la tarea> <Nombre de la tarea>"
 body:
