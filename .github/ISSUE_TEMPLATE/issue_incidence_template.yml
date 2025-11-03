@@ -1,0 +1,58 @@
+name: "Incidence Template"
+description: "Crea una issue para una incidencia específica sin detalles innecesarios."
+title: "I<Número de la incidencia> <Nombre de la incidencia>"
+body:
+  - type: markdown
+    attributes:
+      value: "### Descripción\n---\nProporciona una descripción detallada de la incidencia."
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Descripción de la incidencia"
+      description: "Describe brevemente de qué se trata esta incidencia."
+      placeholder: "Ejemplo: El contador de descargas falla"
+    validations:
+      required: true
+
+  - type: textarea
+    id: information
+    attributes:
+      label: "Información de la incidencia"
+      description: "Indica toda la información para poder entender, reproducir y analizar la incidencia"
+      placeholder: "Ejemplo: El contador de descargas tras la descarga número 1000 empieza a contar de 10 en 10."
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "### Prioridad, Dificultad y Milestone\n---\nAsigna etiquetas, prioridad y milestone para esta tarea."
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Prioridad"
+      description: "Selecciona la prioridad de la tarea."
+      options:
+        - Alta (high Priority)
+        - Media (medium Priority)
+        - Baja (low Priority)
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: "Prioridad"
+      description: "Selecciona la prioridad de la tarea."
+      options:
+        - Difícil (hard)
+        - Media (medium)
+        - Baja (low)
+
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: "Milestone"
+      description: "Selecciona el milestone al que pertenece esta tarea."
+      options:
+        - M2
+        - M3

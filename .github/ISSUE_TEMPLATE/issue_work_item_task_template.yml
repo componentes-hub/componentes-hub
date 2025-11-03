@@ -1,0 +1,50 @@
+name: "Work Item Task Template"
+description: "Crea una tarea de un Work Item (WI) sin detalles innecesarios."
+title: "WI<Número del WI>-T<Número de la tarea> <Nombre de la tarea>"
+body:
+  - type: markdown
+    attributes:
+      value: "### Descripción\n---\nProporciona una descripción detallada de esta tarea."
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Descripción"
+      description: "Describe detalladamente el propósito de esta tarea."
+      placeholder: "Ejemplo: Allow tracking how many times a dataset has been downloaded by incrementing a counter each time a download is requested.
+                    This gives authors and users a simple way to measure dataset popularity."
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "### Etiquetas, Dificultad y Milestone\n---\nAsigna prioridad, dificultad, y milestone a esta tarea."
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Prioridad"
+      description: "Selecciona la prioridad de esta tarea."
+      options:
+        - Alta (high Priority)
+        - Media (medium Priority)
+        - Baja (low Priority)
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: "Dificultad"
+      description: "Selecciona la dificultad de esta tarea."
+      options:
+        - Difícil (hard)
+        - Media (medium)
+        - Baja (low)
+
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: "Milestone"
+      description: "Selecciona el milestone al que pertenece este WI."
+      options:
+        - M2
+        - M3
