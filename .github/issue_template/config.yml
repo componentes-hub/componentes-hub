@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+issue_templates:
+  - name: "Incidence Template"
+    description: "Crea una issue para una incidencia específica siguiendo la política de issues."
+    file: issue_incidence_template.yml
+  - name: "Work Item Task template"
+    description: "Crea una tarea (T) del Work Item (WI) siguiendo la política de issues."
+    file: issue_work_item_task_template.yml
