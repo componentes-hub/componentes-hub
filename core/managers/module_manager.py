@@ -12,14 +12,13 @@ class ModuleManager:
     def __init__(self, app):
         self.app = app
         self.base_dir = os.path.abspath(os.path.dirname(__file__))
-        # Si WORKING_DIR no está definido, usar la carpeta raíz del proyecto
-        working_dir = os.getenv("WORKING_DIR") or os.path.dirname(self.base_dir)
-        # Construye rutas en base al directorio real
-        self.modules_dir = os.path.join(working_dir, "app", "modules")
-        self.ignored_modules_file = os.path.join(working_dir, ".moduleignore")
-        # Normalizar por si acaso
-        self.modules_dir = os.path.normpath(self.modules_dir)
-        self.ignored_modules_file = os.path.normpath(self.ignored_modules_file)
+
+        # Usa WORKING_DIR si existe; si no, sube dos niveles desde /core/managers
+        project_root = os.getenv("WORKING_DIR") or os.path.abspath(os.path.join(self.base_dir, "../.."))
+
+        self.modules_dir = os.path.join(project_root, "app", "modules")
+        self.ignored_modules_file = os.path.join(project_root, ".moduleignore")
+
         self.ignored_modules = self._load_ignored_modules()
 
     def _load_ignored_modules(self):
