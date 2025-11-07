@@ -29,6 +29,10 @@ COPY requirements.txt .
 RUN find . -type d -name "__pycache__" -exec rm -r {} + && \
     find . -type f -name "*.pyc" -exec rm -f {} +
 
+# Copy entrypoint and set execution permissions
+COPY docker/entrypoints/production_entrypoint.sh /app/production_entrypoint.sh
+RUN chmod +x /app/production_entrypoint.sh
+
 # Copy the wait-for-db.sh script and set execution permissions
 COPY --chmod=0755 scripts/wait-for-db.sh ./scripts/
 
@@ -46,3 +50,6 @@ RUN echo $VERSION_TAG > /app/.version
 
 # Expose port 5000
 EXPOSE 5000
+
+# Command to run the application
+CMD ["./production_entrypoint.sh"]
