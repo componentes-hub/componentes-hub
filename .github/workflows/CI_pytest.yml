@@ -18,7 +18,7 @@ jobs:
     # Global environment variables shared across services and steps
     env:
       MARIADB_ROOT_PASSWORD: componenteshubdb_root_password
-      MARIADB_DATABASE: componenteshubdb
+      MARIADB_DATABASE: componenteshubdb_test
       MARIADB_TEST_DATABASE: componenteshubdb_test
       MARIADB_USER: componenteshubdb_user
       MARIADB_PASSWORD: componenteshubdb_password
