@@ -9,9 +9,7 @@ name: Pytest
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [main,trunk]
 
 jobs:
   pytest:
@@ -19,11 +17,11 @@ jobs:
 
     # Global environment variables shared across services and steps
     env:
-      MARIADB_ROOT_PASSWORD: uvlhub_root_password
-      MARIADB_DATABASE: uvlhubdb_test
-      MARIADB_TEST_DATABASE: uvlhubdb_test
-      MARIADB_USER: uvlhub_user
-      MARIADB_PASSWORD: uvlhub_password
+      MARIADB_ROOT_PASSWORD: componenteshubdb_root_password
+      MARIADB_DATABASE: componenteshubdb
+      MARIADB_TEST_DATABASE: componenteshubdb_test
+      MARIADB_USER: componenteshubdb_user
+      MARIADB_PASSWORD: componenteshubdb_password
       MARIADB_HOSTNAME: 127.0.0.1
       MARIADB_PORT: 3306
       FLASK_ENV: testing
