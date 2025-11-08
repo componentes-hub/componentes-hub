@@ -1,0 +1,36 @@
+name: Weekly Release
+
+on:
+  schedule:
+    - cron: '0 22 * * 1'  # Cada lunes a las 22:00 UTC
+  workflow_dispatch:    
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          tags: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install requests packaging  # requests para llamar a la API de GitHub y packaging para parsear versiones semánticas
+
+      - name: Generate and publish release
+        run: python3 scripts/release.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_ACTOR: ${{ github.actor }}
