@@ -21,17 +21,9 @@ class ZenodoService(BaseService):
 
     def get_zenodo_url(self):
 
-        FLASK_ENV = os.getenv("FLASK_ENV", "development")
-        ZENODO_API_URL = ""
-
-        if FLASK_ENV == "development":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
-        elif FLASK_ENV == "production":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://zenodo.org/api/deposit/depositions")
-        else:
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
-
-        return ZENODO_API_URL
+        fakenodo_url = os.getenv("FAKENODO_URL")
+        
+        return fakenodo_url
 
     def get_zenodo_access_token(self):
         return os.getenv("ZENODO_ACCESS_TOKEN")
