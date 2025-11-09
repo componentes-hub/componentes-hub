@@ -24,7 +24,7 @@ fi
 
 SSL_OPTION=""
 if [ "$DISABLE_DB_SSL" = "true" ]; then
-    SSL_OPTION="--ssl-mode=DISABLED" # Deactivate ssl on pre-production
+    SSL_OPTION="--ssl=0" # Deactivate ssl on pre-production
 fi
 
 # Check if the database is empty
