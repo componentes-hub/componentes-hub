@@ -1,0 +1,21 @@
+name: Deploy Production to Render
+
+on:
+    release:
+      # run when a release is published
+      types: [published]
+
+jobs:
+
+  deploy:
+    name: Deploy Production to Render
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        env:
+          deploy_url: ${{ secrets.RENDER_PROD_DEPLOY_HOOK_URL }}
+        run: |
+          curl "$deploy_url"

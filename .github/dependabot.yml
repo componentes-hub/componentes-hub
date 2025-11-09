@@ -3,7 +3,8 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-    # Dependabot will check for updates once a week
+      # Dependabot will check for updates once a week; run on Mondays
       interval: "weekly"
+      day: "monday"
     # Limit the maximum number of open Dependabot PRs to 0 to avoid creating PRs
     open-pull-requests-limit: 0
