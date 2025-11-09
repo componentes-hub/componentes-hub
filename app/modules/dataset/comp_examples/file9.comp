@@ -1,0 +1,15 @@
+name: AirCooler120mm
+version: 1.0
+author: CoolingMasters
+
+properties:
+    id: cooling_01
+    type: cooling
+    model: 120mm Air Cooler
+    brand: CoolerMaster
+    fan_speed: 600-1800 RPM
+    noise_level: 25dB
+    heatpipes: 4
+    compatibility: Intel/AMD
+    description: Compact tower cooler ideal for mid-range CPUs.
+
