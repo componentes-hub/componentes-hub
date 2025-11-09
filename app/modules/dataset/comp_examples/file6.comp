@@ -1,0 +1,16 @@
+name: NVMe1TB
+version: 1.0
+author: StoragePlus
+
+properties:
+    id: storage_01
+    type: storage
+    model: 1TB NVMe SSD
+    brand: Samsung
+    interface: PCIe Gen3 x4
+    read_speed: 3500MB/s
+    write_speed: 3000MB/s
+    endurance: 600TBW
+    form_factor: M.2 2280
+    description: High-speed NVMe SSD suitable for OS and applications.
+

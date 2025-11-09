@@ -1,0 +1,16 @@
+name: IntelCorei512400
+version: 1.1
+author: CPUWarehouse
+
+properties:
+    id: cpu_01
+    type: processor
+    model: Intel i5-12400
+    brand: Intel
+    cores: 6
+    threads: 12
+    base_clock: 2.5GHz
+    boost_clock: 4.4GHz
+    socket: LGA1700
+    tdp: 65W
+    description: Mid-range 12th Gen CPU ideal for gaming y productividad.

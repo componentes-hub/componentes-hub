@@ -1,0 +1,21 @@
+name: AppleM1
+version: 1.0
+author: AppleInc
+
+properties:
+    id: soc_01
+    type: processor
+    model: Apple M1
+    brand: Apple
+    architecture: ARM64 (Apple Silicon)
+    cores: 8
+    performance_cores: 4
+    efficiency_cores: 4
+    gpu_cores: 7
+    neural_engine: 16-core
+    memory_type: Unified Memory
+    memory_bandwidth: 68GB/s
+    fabrication_node: 5nm TSMC
+    tdp: 15W (aprox.)
+    description: Apple M1 System-on-Chip integrating CPU, GPU, Neural Engine, I/O controllers and unified memory architecture for highly efficient performance in macOS devices.
+

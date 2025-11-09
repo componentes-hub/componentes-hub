@@ -1,0 +1,16 @@
+name: DDR4_16GB_3200MHz
+version: 1.0
+author: MemoryFactory
+
+properties:
+    id: ram_01
+    type: memory
+    model: 16GB DDR4
+    brand: Kingston
+    speed: 3200MHz
+    modules: 2x8GB
+    latency: CL16
+    voltage: 1.35V
+    memory_type: DDR4
+    description: High-speed dual-channel kit ideal for gaming builds.
+

@@ -1,0 +1,15 @@
+name: LiquidCooler240mm
+version: 1.0
+author: HydroTech
+
+properties:
+    id: cooling_01
+    type: cooling
+    model: 240mm AIO Liquid Cooler
+    brand: NZXT
+    pump_speed: 2800 RPM
+    radiator_size: 240mm
+    tube_length: 400mm
+    rgb: Yes
+    description: High-performance liquid cooler for overclocked CPUs.
+

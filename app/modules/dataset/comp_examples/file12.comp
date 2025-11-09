@@ -1,0 +1,19 @@
+name: x264Slower8000
+version: 1.0
+author: VideoEncodingLab
+
+properties:
+    id: encoder_01
+    type: encoder
+    model: x264 Slower Preset
+    brand: x264
+    codec: H.264/AVC
+    bitrate_mode: CBR
+    bitrate: 8000 kbps
+    preset: slower
+    profile: high
+    level: 4.1
+    tuning: film
+    threads: auto
+    description: x264 encoder configured with the 'slower' preset and constant bitrate of 8000 kbps. Optimized for higher-quality video encoding at the cost of increased CPU usage.
+

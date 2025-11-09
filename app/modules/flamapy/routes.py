@@ -10,59 +10,31 @@ from flask import jsonify, send_file
 from uvl.UVLCustomLexer import UVLCustomLexer
 from uvl.UVLPythonParser import UVLPythonParser
 
+from app.modules.componentes_check.check_comp import PCCompFileChecker
 from app.modules.flamapy import flamapy_bp
 from app.modules.hubfile.services import HubfileService
 
 logger = logging.getLogger(__name__)
 
 
-@flamapy_bp.route("/flamapy/check_uvl/<int:file_id>", methods=["GET"])
-def check_uvl(file_id):
-    class CustomErrorListener(ErrorListener):
-        def __init__(self):
-            self.errors = []
-
-        def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-            if "\\t" in msg:
-                warning_message = (
-                    f"The UVL has the following warning that prevents reading it: " f"Line {line}:{column} - {msg}"
-                )
-                print(warning_message)
-                self.errors.append(warning_message)
-            else:
-                error_message = (
-                    f"The UVL has the following error that prevents reading it: " f"Line {line}:{column} - {msg}"
-                )
-                self.errors.append(error_message)
-
+@flamapy_bp.route("/flamapy/check_comp/<int:file_id>", methods=["GET"])
+def check_comp(file_id):
     try:
         hubfile = HubfileService().get_by_id(file_id)
-        input_stream = FileStream(hubfile.get_path())
-        lexer = UVLCustomLexer(input_stream)
+        with open(hubfile.get_path(), "r", encoding="utf-8") as f:
+            content = f.read()
 
-        error_listener = CustomErrorListener()
+        checker = PCCompFileChecker(content)
 
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(error_listener)
-
-        stream = CommonTokenStream(lexer)
-        parser = UVLPythonParser(stream)
-
-        parser.removeErrorListeners()
-        parser.addErrorListener(error_listener)
-
-        # tree = parser.featureModel()
-
-        if error_listener.errors:
-            return jsonify({"errors": error_listener.errors}), 400
-
-        # Optional: Print the parse tree
-        # print(tree.toStringTree(recog=parser))
-
-        return jsonify({"message": "Valid Model"}), 200
+        if checker.is_valid():
+            return jsonify({"message": "Valid Comp File"}), 200
+        else:
+            return jsonify({"errors": checker.get_errors()}), 400
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 
 @flamapy_bp.route("/flamapy/valid/<int:file_id>", methods=["GET"])
