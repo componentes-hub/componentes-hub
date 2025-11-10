@@ -221,14 +221,14 @@ def download_dataset(dataset_id):
         download_cookie=user_cookie,
     ).first()
 
-    if not existing_record:
-        # Record the download in your database
-        DSDownloadRecordService().create(
-            user_id=current_user.id if current_user.is_authenticated else None,
-            dataset_id=dataset_id,
-            download_date=datetime.now(timezone.utc),
-            download_cookie=user_cookie,
-        )
+    
+    # Record the download in your database
+    DSDownloadRecordService().create(
+    user_id=current_user.id if current_user.is_authenticated else None,
+    dataset_id=dataset_id,
+    download_date=datetime.now(timezone.utc),
+    download_cookie=user_cookie,
+    )
 
     return resp
 

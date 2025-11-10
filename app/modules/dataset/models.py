@@ -125,10 +125,14 @@ class DataSet(db.Model):
             "files_count": self.get_files_count(),
             "total_size_in_bytes": self.get_file_total_size(),
             "total_size_in_human_format": self.get_file_total_size_for_human(),
+            "download_count": self.get_download_count(),
         }
 
     def __repr__(self):
         return f"DataSet<{self.id}>"
+
+    def get_download_count(self):
+        return db.session.query(DSDownloadRecord).filter_by(dataset_id=self.id).count()
 
 
 class DSDownloadRecord(db.Model):
