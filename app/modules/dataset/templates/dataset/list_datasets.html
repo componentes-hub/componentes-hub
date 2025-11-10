@@ -19,6 +19,8 @@
                             <th>Publication type</th>
                             <th>Dataset DOI</th>
                             <th>Options</th>
+                            <th>Downloads</th>
+
                         </tr>
                         </thead>
                         <tbody>
@@ -41,6 +43,7 @@
                                         <i data-feather="download"></i>
                                     </a>
                                 </td>
+                                <td>{{ dataset.get_download_count() }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -84,7 +87,9 @@
                                     <th>Title</th>
                                     <th>Description</th>
                                     <th>Publication type</th>
+                                    <th>Downloads</th>
                                     <th>Options</th>
+                                    
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -97,6 +102,7 @@
                                         </td>
                                         <td>{{ local_dataset.ds_meta_data.description }}</td>
                                         <td>{{ local_dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
+                                        <td>{{ local_dataset.get_download_count() }}</td>
                                         <td>
                                             <a href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=local_dataset.id) }}">
                                                 <i data-feather="eye"></i>
