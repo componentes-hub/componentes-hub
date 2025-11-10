@@ -1,0 +1,17 @@
+name: RTX3060
+version: 1.0
+author: NvidiaCorp
+
+properties:
+    id: gpu_01
+    type: graphics
+    model: NVIDIA RTX 3060
+    brand: NVIDIA
+    memory: 12GB GDDR6
+    cuda_cores: 3584
+    boost_clock: 1777MHz
+    power_consumption: 170W
+    connector: PCIe 4.0
+    outputs: HDMI, DisplayPort x3
+    description: 1080p/1440p gaming GPU with ray tracing and DLSS support.
+

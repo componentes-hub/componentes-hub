@@ -101,10 +101,10 @@ class DataSet(db.Model):
 
         return SizeService().get_human_readable_size(self.get_file_total_size())
 
-    def get_uvlhub_doi(self):
+    def get_componenteshub_doi(self):
         from app.modules.dataset.services import DataSetService
 
-        return DataSetService().get_uvlhub_doi(self)
+        return DataSetService().get_componenteshub_doi(self)
 
     def to_dict(self):
         return {
@@ -118,17 +118,21 @@ class DataSet(db.Model):
             "publication_doi": self.ds_meta_data.publication_doi,
             "dataset_doi": self.ds_meta_data.dataset_doi,
             "tags": self.ds_meta_data.tags.split(",") if self.ds_meta_data.tags else [],
-            "url": self.get_uvlhub_doi(),
+            "url": self.get_componenteshub_doi(),
             "download": f'{request.host_url.rstrip("/")}/dataset/download/{self.id}',
             "zenodo": self.get_zenodo_url(),
             "files": [file.to_dict() for fm in self.feature_models for file in fm.files],
             "files_count": self.get_files_count(),
             "total_size_in_bytes": self.get_file_total_size(),
             "total_size_in_human_format": self.get_file_total_size_for_human(),
+            "download_count": self.get_download_count(),
         }
 
     def __repr__(self):
         return f"DataSet<{self.id}>"
+
+    def get_download_count(self):
+        return db.session.query(DSDownloadRecord).filter_by(dataset_id=self.id).count()
 
 
 class DSDownloadRecord(db.Model):

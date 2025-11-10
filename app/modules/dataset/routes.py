@@ -122,7 +122,7 @@ def upload():
     file = request.files["file"]
     temp_folder = current_user.temp_folder()
 
-    if not file or not file.filename.endswith(".uvl"):
+    if not file or not file.filename.endswith(".comp"):
         return jsonify({"message": "No valid file"}), 400
 
     # create temp folder
@@ -150,7 +150,7 @@ def upload():
     return (
         jsonify(
             {
-                "message": "UVL uploaded and validated successfully",
+                "message": "Comp uploaded and validated successfully",
                 "filename": new_filename,
             }
         ),
@@ -221,14 +221,14 @@ def download_dataset(dataset_id):
         download_cookie=user_cookie,
     ).first()
 
-    if not existing_record:
-        # Record the download in your database
-        DSDownloadRecordService().create(
-            user_id=current_user.id if current_user.is_authenticated else None,
-            dataset_id=dataset_id,
-            download_date=datetime.now(timezone.utc),
-            download_cookie=user_cookie,
-        )
+    
+    # Record the download in your database
+    DSDownloadRecordService().create(
+    user_id=current_user.id if current_user.is_authenticated else None,
+    dataset_id=dataset_id,
+    download_date=datetime.now(timezone.utc),
+    download_cookie=user_cookie,
+    )
 
     return resp
 

@@ -37,7 +37,12 @@
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <h1><b>{{ dataset.ds_meta_data.title }}</b></h1>
+                    
                     <div>
+                        <a class="btn btn-primary mt-3" style="border-radius: 5px;">
+                        <i data-feather="download" class="center-button-icon"></i>
+                        {{ dataset.get_download_count() }} Downloads 
+                        </a>
                         <span class="badge bg-secondary">{{ dataset.get_cleaned_publication_type() }}</span>
                     </div>
                 </div>
@@ -64,7 +69,7 @@
                         </span>
                     </div>
                     <div class="col-md-8 col-12">
-                        <a href="#">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
+                        <a href="{{ url_for('profile.proyectos_usuario', user_id=dataset.user.id) }}">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
                     </div>
 
                 </div>
@@ -78,18 +83,17 @@
                     </div>
                     <div class="col-md-8 col-12">
                         {% for author in dataset.ds_meta_data.authors %}
-                        <p class="p-0 m-0">
-                            {{ author.name }}
-                            {% if author.affiliation %}
-                            ({{ author.affiliation }})
-                            {% endif %}
-                            {% if author.orcid %}
-                            ({{ author.orcid }})
-                            {% endif %}
-                        </p>
+                            <p class="p-0 m-0">
+                                <a href="{{ url_for('profile.proyectos_autor', author_id=author.id) }}">{{ author.name }}</a>
+                                {% if author.affiliation %} 
+                                    ({{ author.affiliation }}) 
+                                {% endif %}
+                                {% if author.orcid %} 
+                                    ({{ author.orcid }}) 
+                                {% endif %}
+                            </p>
                         {% endfor %}
                     </div>
-
 
                 </div>
 
@@ -161,22 +165,22 @@
             {% if dataset.ds_meta_data.dataset_doi %}
             <div class="card-body" style="padding-top: 0px">
 
-                <div id="dataset_doi_uvlhub" style="display: none">
-                    {{ dataset.get_uvlhub_doi() }}
+                <div id="dataset_doi_componenteshub" style="display: none">
+                    {{ dataset.get_componenteshub_doi() }}
                 </div>
 
-                <button type="button" class="btn doi_button btn-sm" onclick="copyText('dataset_doi_uvlhub')">
+                <button type="button" class="btn doi_button btn-sm" onclick="copyText('dataset_doi_componenteshub')">
                     <span class="button_doi_id">
                         <i data-feather="clipboard" class="center-button-icon" style="cursor: pointer"></i>
                         <b>DOI</b>
                     </span>
                     <span class="doi_text">
-                        {{ dataset.get_uvlhub_doi() }}
+                        {{ dataset.get_componenteshub_doi() }}
                     </span>
                 </button>
                 
-                <div id="dataset_doi_uvlhub" style="display: none">
-                    {{ dataset.get_uvlhub_doi() }}
+                <div id="dataset_doi_componenteshub" style="display: none">
+                    {{ dataset.get_componenteshub_doi() }}
                 </div>
                 
             </div>
@@ -191,7 +195,7 @@
                 <h3> Related publication </h3>
                 
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
-                <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
+                <i>ComponentesHub: A feature model data repository using Comp and open science principles</i>,
                 Journal of Systems and Software,
                 2024,
                 112150,
@@ -237,7 +241,7 @@
 
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <h4 style="margin-bottom: 0px">UVL models</h4>
+                        <h4 style="margin-bottom: 0px">Comp models</h4>
                         <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count() }}</span></h4>
                     </div>
                 </div>
@@ -279,7 +283,7 @@
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="btnGroupDrop{{ file.id }}">
                                         <li>
-                                            <a class="dropdown-item" href="javascript:void(0);" onclick="checkUVL('{{ file.id }}')">Syntax check</a>
+                                            <a class="dropdown-item" href="javascript:void(0);" onclick="checkComp('{{ file.id }}')">Syntax check</a>
                                         </li>
                                         <!--
                                         <li>
@@ -296,7 +300,7 @@
                                     <ul class="dropdown-menu" aria-labelledby="btnGroupDropExport{{ file.id }}">
                                         <li>
                                             <a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=file.id) }}">
-                                                UVL
+                                                Comp
                                             </a>
                                             <a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=file.id) }}">
                                                 Glencoe
@@ -392,11 +396,11 @@
         document.getElementById("loading").style.display = "none";
     }
 
-    function checkUVL(file_id) {
+    function checkComp(file_id) {
     const outputDiv = document.getElementById('check_' + file_id);
     outputDiv.innerHTML = ''; // Clear previous output
 
-    fetch(`/flamapy/check_uvl/${file_id}`)
+    fetch(`/flamapy/check_comp/${file_id}`)
         .then(response => {
             return response.json().then(data => ({
                 status: response.status,
@@ -433,57 +437,7 @@
 }
 
 
-    /*
-    async function valid() {
-        showLoading()
-        let pyodide = await loadPyodide();
-        await pyodide.loadPackage("micropip");
-        const micropip = pyodide.pyimport("micropip");
-        //await micropip.install("/assets/web_assembly/antlr4_python3_runtime-4.7.2-py3-none-any.whl");
-        await micropip.install("antlr4-python3-runtime==4.13.1");
-        await micropip.install("uvlparser==2.0.1");
-        //await micropip.install("afmparser==1.0.0");
 
-        await pyodide.runPythonAsync(
-        `
-            import micropip
-            #await micropip.install("flamapy-fm-dist", deps=False)#this is to avoid problems with deps later on
-            await micropip.install("flamapy==2.0.1.dev1", deps=False);
-            await micropip.install("flamapy-fm==2.0.1.dev1", deps=False);
-            await micropip.install("flamapy-sat");
-        `
-        )
-        hideLoading()
-
-        try {
-            let output = pyodide.runPython(
-            `
-            import js
-
-            file_content = js.document.getElementById('fileContent').textContent 
-            div = js.document.createElement("result")
-
-            with open("uvlfile.uvl", "w") as text_file:
-                print(file_content, file=text_file)
-
-            from flamapy.interfaces.python.FLAMAFeatureModel import FLAMAFeatureModel
-
-            fm = FLAMAFeatureModel("uvlfile.uvl")
-            result=fm.valid()
-
-            div.innerHTML = "<div id='deleteme'>"+str(result)+"</div>"
-            exists=js.document.getElementById('deleteme')
-            if(exists):
-                exists.remove()
-
-            js.document.getElementById('result').append(div)
-            `
-        );
-        } catch (err) {
-            console.log(err);
-        }
-    }
-    */
     function copyToClipboard() {
         const text = document.getElementById('fileContent').textContent;
         navigator.clipboard.writeText(text).then(() => {

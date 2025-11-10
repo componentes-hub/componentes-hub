@@ -1,0 +1,17 @@
+name: RadeonRX6600
+version: 1.0
+author: AMDGraphics
+
+properties:
+    id: gpu_01
+    type: graphics
+    model: AMD Radeon RX 6600
+    brand: AMD
+    memory: 8GB GDDR6
+    compute_units: 28
+    game_clock: 2044MHz
+    boost_clock: 2491MHz
+    power_consumption: 132W
+    connector: PCIe 4.0
+    description: Efficient mid-range GPU optimized for 1080p gaming.
+

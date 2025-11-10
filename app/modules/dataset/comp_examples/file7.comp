@@ -1,0 +1,15 @@
+name: HDD2TB
+version: 1.0
+author: HardDriveCo
+
+properties:
+    id: storage_01
+    type: storage
+    model: 2TB HDD
+    brand: Seagate
+    rpm: 7200
+    cache: 256MB
+    interface: SATA III
+    noise_level: 29dB
+    description: Reliable mechanical storage for large media libraries.
+

@@ -1,12 +1,12 @@
-from flask import redirect, render_template, request, url_for
-from flask_login import current_user, login_required
-
-from app import db
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DataSet
+from app.modules.dataset.models import DataSet, Author, DSMetaData
+from flask import render_template, redirect, url_for, request
+from flask_login import login_required, current_user
+from app import db
 from app.modules.profile import profile_bp
 from app.modules.profile.forms import UserProfileForm
 from app.modules.profile.services import UserProfileService
+from app.modules.profile.models import UserProfile
 
 
 @profile_bp.route("/profile/edit", methods=["GET", "POST"])
@@ -28,28 +28,50 @@ def edit_profile():
     return render_template("profile/edit.html", form=form)
 
 
-@profile_bp.route("/profile/summary")
+@profile_bp.route('/profile/summary')
 @login_required
 def my_profile():
-    page = request.args.get("page", 1, type=int)
+    page = request.args.get('page', 1, type=int)
     per_page = 5
 
-    user_datasets_pagination = (
-        db.session.query(DataSet)
-        .filter(DataSet.user_id == current_user.id)
-        .order_by(DataSet.created_at.desc())
+    user_datasets_pagination = db.session.query(DataSet) \
+        .filter(DataSet.user_id == current_user.id) \
+        .order_by(DataSet.created_at.desc()) \
         .paginate(page=page, per_page=per_page, error_out=False)
-    )
 
-    total_datasets_count = db.session.query(DataSet).filter(DataSet.user_id == current_user.id).count()
+    total_datasets_count = db.session.query(DataSet) \
+        .filter(DataSet.user_id == current_user.id) \
+        .count()
 
     print(user_datasets_pagination.items)
 
     return render_template(
-        "profile/summary.html",
+        'profile/summary.html',
         user_profile=current_user.profile,
         user=current_user,
         datasets=user_datasets_pagination.items,
         pagination=user_datasets_pagination,
-        total_datasets=total_datasets_count,
+        total_datasets=total_datasets_count
     )
+
+
+@profile_bp.route('/author/<int:author_id>/projects', methods=['GET'])
+def proyectos_autor(author_id):
+    author = Author.query.get(author_id)
+    if not author:
+        return "Autor no encontrado", 404
+
+    datasets = DataSet.query.join(DSMetaData).filter(DSMetaData.authors.any(id=author_id)).all()
+
+    return render_template('profile/author_projects.html', author=author, datasets=datasets)
+
+
+@profile_bp.route('/user/<int:user_id>/projects', methods=['GET'])
+def proyectos_usuario(user_id):
+    user = UserProfile.query.get(user_id)
+    if not user:
+        return "Autor no encontrado", 404
+
+    datasets = DataSet.query.filter(DataSet.user_id == user_id)
+
+    return render_template('profile/user_projects.html', user=user, datasets=datasets)

@@ -1,0 +1,16 @@
+name: PSU650W
+version: 1.1
+author: PowerSupplyPro
+
+properties:
+    id: psu_01
+    type: power_supply
+    model: 650W Gold
+    brand: Corsair
+    wattage: 650W
+    efficiency: 80+ Gold
+    modular: Fully modular
+    protections: OVP, OCP, SCP, UVP
+    fan_size: 120mm
+    description: High-efficiency PSU suitable for gaming PCs.
+

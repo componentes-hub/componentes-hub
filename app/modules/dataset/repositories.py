@@ -21,8 +21,7 @@ class DSDownloadRecordRepository(BaseRepository):
         super().__init__(DSDownloadRecord)
 
     def total_dataset_downloads(self) -> int:
-        max_id = self.model.query.with_entities(func.max(self.model.id)).scalar()
-        return max_id if max_id is not None else 0
+        return self.model.query.count()
 
 
 class DSMetaDataRepository(BaseRepository):

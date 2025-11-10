@@ -21,17 +21,9 @@ class ZenodoService(BaseService):
 
     def get_zenodo_url(self):
 
-        FLASK_ENV = os.getenv("FLASK_ENV", "development")
-        ZENODO_API_URL = ""
-
-        if FLASK_ENV == "development":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
-        elif FLASK_ENV == "production":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://zenodo.org/api/deposit/depositions")
-        else:
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
-
-        return ZENODO_API_URL
+        fakenodo_url = os.getenv("FAKENODO_URL")
+        
+        return fakenodo_url
 
     def get_zenodo_access_token(self):
         return os.getenv("ZENODO_ACCESS_TOKEN")
@@ -164,7 +156,7 @@ class ZenodoService(BaseService):
                 for author in dataset.ds_meta_data.authors
             ],
             "keywords": (
-                ["uvlhub"] if not dataset.ds_meta_data.tags else dataset.ds_meta_data.tags.split(", ") + ["uvlhub"]
+                ["componenteshub"] if not dataset.ds_meta_data.tags else dataset.ds_meta_data.tags.split(", ") + ["componenteshub"]
             ),
             "access_right": "open",
             "license": "CC-BY-4.0",
@@ -190,10 +182,10 @@ class ZenodoService(BaseService):
         Returns:
             dict: The response in JSON format with the details of the uploaded file.
         """
-        uvl_filename = feature_model.fm_meta_data.uvl_filename
-        data = {"name": uvl_filename}
+        comp_filename = feature_model.fm_meta_data.comp_filename
+        data = {"name": comp_filename}
         user_id = current_user.id if user is None else user.id
-        file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", uvl_filename)
+        file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", comp_filename)
         files = {"file": open(file_path, "rb")}
 
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
