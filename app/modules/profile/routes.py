@@ -61,7 +61,8 @@ def proyectos_autor(author_id):
     if not author:
         return "Autor no encontrado", 404
 
-    datasets = DataSet.query.join(DSMetaData).filter(DSMetaData.authors.any(id=author_id)).all()
+# datasets = DataSet.query.join(DSMetaData).filter(DSMetaData.authors.any(id=author_id)).all()
+    datasets = list(DataSet.query.join(DSMetaData).filter(DSMetaData.authors.any(id=author_id)))
 
     return render_template('profile/author_projects.html', author=author, datasets=datasets)
 
@@ -72,6 +73,7 @@ def proyectos_usuario(user_id):
     if not user:
         return "Autor no encontrado", 404
 
-    datasets = DataSet.query.filter(DataSet.user_id == user_id)
+# datasets = DataSet.query.filter(DataSet.user_id == user_id)
+    datasets = list(DataSet.query.filter(DataSet.user_id == user_id))
 
     return render_template('profile/user_projects.html', user=user, datasets=datasets)

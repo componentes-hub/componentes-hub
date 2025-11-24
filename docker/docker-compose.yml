@@ -1,0 +1,71 @@
+services:
+
+  web:
+    container_name: web_app_container
+    image: javsorbla/componenteshub:latest
+    env_file:
+      - ../.env.docker
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    restart: always
+    volumes:
+      - ./entrypoints/production_entrypoint.sh:/app/entrypoint.sh
+      - ../scripts:/app/scripts
+      - ../migrations:/app/migrations
+      - ../uploads:/app/uploads
+      - ../.moduleignore:/app/.moduleignore
+    command: [ "sh", "-c", "sh /app/entrypoint.sh" ]
+    networks:
+      - componenteshub_network
+
+  db:
+    container_name: mariadb_container
+    image: mariadb:12.0.2
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: componenteshubdb_root_password
+      MARIADB_DATABASE: componenteshubdb
+      MARIADB_USER: componenteshubdb_user
+      MARIADB_PASSWORD: componenteshubdb_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --bind-address=0.0.0.0
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - componenteshub_network
+
+  nginx:
+    container_name: nginx_web_server_container
+    image: nginx:1.29.1
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./nginx/html:/usr/share/nginx/html
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    restart: always
+    networks:
+      - componenteshub_network
+
+  watchtower:
+    container_name: watchtower_container
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup --interval 120 web_app_container
+    restart: always
+    networks:
+      - componenteshub_network
+
+volumes:
+  db_data:
+
+networks:
+  componenteshub_network:
+    driver: bridge  
