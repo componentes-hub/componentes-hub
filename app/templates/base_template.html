@@ -197,7 +197,29 @@ chico sundermann">
         <main class="content">
             <div class="container p-0">
 
+
                 {% block content %}{% endblock %}
+
+                {% if current_user.is_authenticated and not current_user.two_factor_enabled %}
+                <div id="twofa-alert" class="alert alert-warning mt-4 alert-dismissible fade show" role="alert" style="display:none;">
+                    <b>¡Protege tu cuenta con doble factor de autenticación!</b><br>
+                    <a href="{{ url_for('auth.two_factor_setup') }}" class="btn btn-outline-primary mt-2">Activar 2FA</a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="dismissTwoFAAlert()"></button>
+                </div>
+                <script>
+                // Show the alert only if not dismissed in this session
+                if (!sessionStorage.getItem('twofa_alert_dismissed')) {
+                    document.getElementById('twofa-alert').style.display = '';
+                }
+                function dismissTwoFAAlert() {
+                    var alert = document.getElementById('twofa-alert');
+                    if (alert) {
+                        alert.style.display = 'none';
+                        sessionStorage.setItem('twofa_alert_dismissed', 'true');
+                    }
+                }
+                </script>
+                {% endif %}
 
             </div>
         </main>

@@ -1,0 +1,36 @@
+{% extends "base_template.html" %}
+
+{% block title %}Activar 2FA{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-3"><b>Activar</b> 2FA</h1>
+<div class="row">
+    <div class="col-12">
+        <p>Escanea este código QR con tu app de autenticación (Google Authenticator, Authy, etc.):</p>
+        <img src="{{ url_for('auth.two_factor_qrcode') }}" alt="QR 2FA" />
+        <p>O ingresa este código manualmente: <b>{{ secret }}</b></p>
+        <form action="{{ url_for('auth.two_factor_confirm') }}" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-6 col-lg-6 col-xs-12">
+                    <div class="mb-3">
+                        {{ form.token.label(class="form-label") }}
+                        {{ form.token(class="form-control",placeholder="Ingresa el código de 6 dígitos") }}
+                        {% for error in form.token.errors %}
+                        <span style="color: red;">{{ error }}</span>
+                        {% endfor %}
+                        {% if error %}
+                        <span style="color: red;">{{ error }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-12">
+                    <button type="submit" class="btn btn-primary">Confirmar y activar 2FA</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
