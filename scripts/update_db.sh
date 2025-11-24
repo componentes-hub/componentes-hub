@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script para actualizar la base de datos siguiendo el orden solicitado
+# Script para actualizar la base de datos
 
 set -e
 
@@ -24,4 +24,4 @@ flask db migrate --message "Auto migration"
 # 4. Aplicar migraciones
 flask db upgrade
 
-echo "¡Base de datos reseteada, sembrada, migrada y actualizada correctamente!"
+echo "Base de datos actualizada correctamente"
