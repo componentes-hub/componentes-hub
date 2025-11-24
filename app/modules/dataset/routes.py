@@ -73,9 +73,9 @@ def create_dataset():
             data = {}
             zenodo_response_json = {}
             logger.exception(f"Exception while create dataset data in Zenodo {exc}")
-
-        if data.get("conceptrecid"):
-            deposition_id = data.get("id")
+        
+        deposition_id = data.get("id")
+        if data.get("conceptrecid") or deposition_id:
 
             # update dataset with deposition id in Zenodo
             dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
