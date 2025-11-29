@@ -1,0 +1,58 @@
+{% extends "base_template.html" %}
+
+{% block title %}My Communities{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 8px; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+    <div>
+        <a href="{{ url_for('community.create_community') }}" class="btn btn-primary">Crear Comunidad</a>
+    </div>
+    <div>
+        <a href="{{ url_for('community.index') }}" class="btn btn-outline-secondary">Mis Comunidades</a>
+    </div>
+    <div>
+        <a href="{{ url_for('community.all_communities') }}" class="btn btn-outline-secondary">Todas las Comunidades</a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+
+{% if communities %}
+    {% if show_all %}
+        <h2>Todas las Comunidades</h2>
+    {% else %}
+        <h2>Mis Comunidades</h2>
+    {% endif %}
+    {% for community in communities %}
+            <div class="col-12 col-md-8 col-lg-12"> 
+                <div class="card shadow-sm" > 
+                    <div class="card-header card-dark"> 
+                        <strong><a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                            {{ community.name }}
+                        </a></strong>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text h5"><i class="fa fa-user-circle"></i>{{community.description}}</p>
+                        {% if not show_all %}
+                        <form method="POST" action="{{ url_for('community.leave_community', community_id=community.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Abandonar Comunidad</button>
+                        </form>
+                        {% endif %}
+                    </div>   
+                </div>
+            </div>
+    {% endfor %}
+{% else %}
+    <p>No perteneces a ninguna comunidad, ¡ÚNETE O CREA UNA!</p>
+{% endif %}
+
+{% endblock %}
