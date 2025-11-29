@@ -20,3 +20,11 @@ class Community(db.Model):
 
     def __repr__(self):
         return f'Community<{self.id}, {self.name}>'
+    
+class CommunityFollower(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    community_id = db.Column(db.Integer, db.ForeignKey('community.id'))
+
+    def __repr__(self):
+        return f'CommunityFollower<{self.id}, {self.community_id}, {self.user_id}>'

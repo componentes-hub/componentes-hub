@@ -6,9 +6,27 @@
 <div class="col-12 col-md-8 col-lg-6"> 
 
     <div class="card shadow-sm" > 
-        <div class="card-header card-dark"> 
-            <h5 class="card-title mb-0" style="color: white; font-size: 15px;">{{ community.name }}</h5>
+        <div class="card-header card-dark d-flex justify-content-between align-items-center">
+    
+            <!-- Nombre de la comunidad -->
+            <h5 class="card-title mb-0" style="color: white; font-size: 15px;">
+            {{ community.name }}
+            </h5>
+
+            <!-- Botones de seguir / dejar de seguir -->
+            {% if not is_member %}
+                {% if not is_follower %}
+                <form action="{{ url_for('community.follow_community', community_id=community.id) }}" method="POST">
+                    <button class="btn btn-primary btn-sm">Seguir</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('community.unfollow_community', community_id=community.id) }}" method="POST">
+                    <button class="btn btn-secondary btn-sm">Dejar de seguir</button>
+                </form>
+                {% endif %}
+            {% endif %}
         </div>
+
         <div class="card-body">
             <p class="card-text h5"><i class="fa fa-user-circle"></i>{{community.description}}</p>
             <p class="card-text h5"><i class="fa fa-id-card"></i> <strong>Users:</strong> {{usersSize}} users</p>
@@ -141,7 +159,7 @@
 
         <!-- Sección de usuarios a la derecha -->
         <div class="col-md-6">
-            <h3>Usuarios</h3>
+            <h3>Miembros</h3>
             <hr>
             <ul>
                 {% for user in users %}
@@ -153,6 +171,17 @@
                         {% endif %}
                     </li>
                 {% endfor %}
+            </ul>
+            <h4 class="mt-4">Seguidores</h4>
+            <hr>
+            <ul>
+                {% if followers %}
+                    {% for follower in followers %}
+                        <li>{{ follower }}</li>
+                    {% endfor %}
+                {% else %}
+                        <li>No hay seguidores aún</li>
+                {% endif %}
             </ul>
         </div>
     </div>

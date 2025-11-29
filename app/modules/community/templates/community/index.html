@@ -26,33 +26,93 @@
 {% endwith %}
 
 
-{% if communities %}
-    {% if show_all %}
-        <h2>Todas las Comunidades</h2>
-    {% else %}
-        <h2>Mis Comunidades</h2>
-    {% endif %}
-    {% for community in communities %}
+{% if not show_all %}
+
+    <h2>Mis Comunidades</h2>
+
+    <!-- ====================== -->
+    <!-- SECCIÓN: MIEMBRO        -->
+    <!-- ====================== -->
+    <h4 class="mt-4">Comunidades donde soy miembro</h4>
+    {% if member_communities %}
+        {% for community in member_communities %}
             <div class="col-12 col-md-8 col-lg-12"> 
-                <div class="card shadow-sm" > 
+                <div class="card shadow-sm"> 
                     <div class="card-header card-dark"> 
-                        <strong><a href="{{ url_for('community.get_community', community_id=community.id) }}">
-                            {{ community.name }}
-                        </a></strong>
+                        <strong>
+                            <a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                                {{ community.name }}
+                            </a>
+                        </strong>
                     </div>
                     <div class="card-body">
-                        <p class="card-text h5"><i class="fa fa-user-circle"></i>{{community.description}}</p>
-                        {% if not show_all %}
+                        <p class="card-text h5"><i class="fa fa-user-circle"></i> {{ community.description }}</p>
                         <form method="POST" action="{{ url_for('community.leave_community', community_id=community.id) }}" style="display:inline;">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Abandonar Comunidad</button>
                         </form>
-                        {% endif %}
                     </div>   
                 </div>
             </div>
-    {% endfor %}
+        {% endfor %}
+    {% else %}
+        <p>No perteneces a ninguna comunidad.</p>
+    {% endif %}
+
+    <!-- ====================== -->
+    <!-- SECCIÓN: SEGUIDAS       -->
+    <!-- ====================== -->
+    <h4 class="mt-4">Comunidades que sigo</h4>
+    {% if followed_communities %}
+        {% for community in followed_communities %}
+            <div class="col-12 col-md-8 col-lg-12"> 
+                <div class="card shadow-sm"> 
+                    <div class="card-header card-dark"> 
+                        <strong>
+                            <a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                                {{ community.name }}
+                            </a>
+                        </strong>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text h5"><i class="fa fa-user-circle"></i> {{ community.description }}</p>
+
+                        <!-- Botón dejar de seguir -->
+                        <form method="POST" action="{{ url_for('community.unfollow_community', community_id=community.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Dejar de seguir</button>
+                        </form>
+
+                    </div>   
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No sigues ninguna comunidad.</p>
+    {% endif %}
+
 {% else %}
-    <p>No perteneces a ninguna comunidad, ¡ÚNETE O CREA UNA!</p>
+
+    <!-- ====================== -->
+    <!-- SECCIÓN: TODAS LAS COMUNIDADES -->
+    <!-- ====================== -->
+    <h2>Todas las Comunidades</h2>
+
+    {% for community in communities %}
+        <div class="col-12 col-md-8 col-lg-12"> 
+            <div class="card shadow-sm"> 
+                <div class="card-header card-dark"> 
+                    <strong>
+                        <a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                            {{ community.name }}
+                        </a>
+                    </strong>
+                </div>
+                <div class="card-body">
+                    <p class="card-text h5"><i class="fa fa-user-circle"></i> {{ community.description }}</p>
+                </div>   
+            </div>
+        </div>
+    {% endfor %}
+
 {% endif %}
 
 {% endblock %}
