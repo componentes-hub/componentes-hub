@@ -20,10 +20,6 @@ class CommunityUserService(BaseService):
             community_id=community_id
         )
 
-    # --------------------------
-    # FOLLOWERS
-    # --------------------------
-
     def create_follower(self, user_id, community_id):
         follower = CommunityFollower(user_id=user_id, community_id=community_id)
         db.session.add(follower)
@@ -50,10 +46,6 @@ class CommunityUserService(BaseService):
             .all()
         )
 
-    # --------------------------
-    # MEMBER COMMUNITIES
-    # --------------------------
-
     def get_communities_by_user_id(self, user_id):
         return (
             CommunityUser.query
@@ -62,7 +54,6 @@ class CommunityUserService(BaseService):
             .with_entities(Community)
             .all()
         )
-
 
 class CommunityService(BaseService):
     def __init__(self):
@@ -73,7 +64,6 @@ class CommunityService(BaseService):
         return self.repository.get_by_code(code=code)
 
     def get_communities_by_user_id(self, user_id):
-        # OJO: Esto devuelve solo comunidades donde el usuario es miembro
         return self.repository.get_communities_by_user_id(user_id)
 
     def get_communities_by_dataset_id(self, dataset_id):

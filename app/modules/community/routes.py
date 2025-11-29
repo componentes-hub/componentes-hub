@@ -48,7 +48,7 @@ def get_community(community_id):
     if not community:
         return make_response(jsonify({"message": "Community not found"}), 404)
 
-    # Ver si el usuario ES miembro de la comunidad
+    # Ver si el usuario es miembro de la comunidad
     community_user = community_user_service.get_by_user_id_and_community(
         community_id=community.id,
         user_id=current_user.id
@@ -57,7 +57,7 @@ def get_community(community_id):
     is_member = True if community_user else False
     is_admin = community_user.is_admin if community_user else False
 
-    # Ver si el usuario es SEGUIDOR (solo si NO es miembro)
+    # Ver si el usuario es seguidor de la comunidad
     follower = None
     if not is_member:
         follower = community_user_service.get_follower(
@@ -67,7 +67,7 @@ def get_community(community_id):
 
     is_follower = follower is not None
 
-    # Lista de MIEMBROS
+    # Lista de miembros
     users = {}
     community_users = community_user_service.get_users_by_community(community_id=community.id)
     for cu in community_users:
@@ -79,14 +79,13 @@ def get_community(community_id):
     current_user_profile = UserProfile.query.filter_by(user_id=current_user.id).first()
     current_user_name = current_user_profile.name if current_user_profile else None
 
-    # DATASETS (de todos los usuarios miembros)
     datasets = []
     for cu in community_users:
         datasets += db.session.query(DataSet).filter(
             DataSet.user_id == cu.user_id
         ).order_by(DataSet.created_at.desc())
 
-    # ⭐ LISTA DE SEGUIDORES
+    # Lista de seguidores
     followers = (
         CommunityFollower.query
         .filter_by(community_id=community.id)
@@ -114,8 +113,6 @@ def get_community(community_id):
         current_user_name=current_user_name
     )
 
-
-
 @community_bp.route(base_url + "/create", methods=["GET", "POST"])
 @login_required
 def create_community():
@@ -134,26 +131,6 @@ def create_community():
         community_user_service.create(user_id=current_user.id, community_id=community.id, is_admin=True)
         return redirect(url_for('community.get_community', community_id=community.id))
     return render_template('community/create.html', createForm=CreateCommunityForm())
-
-
-#@community_bp.route(base_url + "/join", methods=["GET", "POST"])
-#@login_required
-#def join_community():
-#    form = FindCommunityForm()
-#    if form.validate_on_submit():
-#        code = form.joinCode.data
-#        community = community_service.get_community_by_code(code)
-#        if not community:
-#            flash("No existe ninguna comunidad con este código", "error")
-#            return redirect(url_for('community.join_community'))
-#        community_user = community_user_service.get_by_user_id_and_community(current_user.id, community.id)
-#        if community_user:
-#            flash("Ya perteneces a esta comunidad", "error")
-#            return redirect(url_for('community.join_community'))
-#        community_user_service.create(user_id=current_user.id, community_id=community.id)
-#        return redirect(url_for('community.get_community', community_id=community.id))
-#    return render_template('community/join.html', findForm=FindCommunityForm())
-
 
 @community_bp.route(base_url + "/update/<int:community_id>", methods=["GET", "POST"])
 @login_required
@@ -206,7 +183,6 @@ def delete_community(community_id):
     community_service.delete(community_id)
     return redirect(url_for('community.index', community_id=community_id))
 
-
 @community_bp.route(base_url + "/leave/<int:community_id>", methods=["POST"])
 @login_required
 def leave_community(community_id):
@@ -227,27 +203,28 @@ def leave_community(community_id):
 @community_bp.route(base_url + "/follow/<int:community_id>", methods=["POST"])
 @login_required
 def follow_community(community_id):
+    # Seguir una comunidad
     community = community_service.get_or_404(community_id)
 
-    # Evitar duplicados
     follower = community_user_service.get_follower(current_user.id, community_id)
     if follower:
-        flash("Ya sigues esta comunidad", "info")
+        flash("You already follow this community", "info")
         return redirect(url_for('community.get_community', community_id=community_id))
 
     community_user_service.create_follower(user_id=current_user.id, community_id=community.id)
 
-    flash("Ahora sigues esta comunidad", "success")
+    flash("You now follow this community", "success")
     return redirect(url_for('community.get_community', community_id=community_id))
 
 @community_bp.route(base_url + "/unfollow/<int:community_id>", methods=["POST"])
 @login_required
 def unfollow_community(community_id):
+    # Dejar de seguir una comunidad
     follower = community_user_service.get_follower(current_user.id, community_id)
     if not follower:
-        flash("No sigues esta comunidad", "error")
+        flash("You don't follow this community", "error")
         return redirect(url_for('community.get_community', community_id=community_id))
 
     community_user_service.delete_follower(follower.id)
-    flash("Dejaste de seguir la comunidad", "success")
+    flash("You unfollowed the community", "success")
     return redirect(url_for('community.get_community', community_id=community_id))

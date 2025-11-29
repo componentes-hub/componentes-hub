@@ -6,22 +6,22 @@
 <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
     <!-- Sección para crear una comunidad -->
     <div style="flex: 1; margin-right: 20px;">
-        <h2>Crear Comunidad</h2>
+        <h2>Create Community</h2>
         <form method="POST" action="{{ url_for('community.create_community') }}">
             {{ createForm.hidden_tag() }}
             <div>
-                <label for="name">Nombre:</label>
+                <label for="name">Name:</label>
                 {{ createForm.name }}
             </div>
             <div>
-                <label for="description">Descripción:</label>
+                <label for="description">Description:</label>
                 {{ createForm.description }}
             </div>
             <div>
-                <label for="code">Código:</label>
+                <label for="code">Code:</label>
                 {{ createForm.code }}
             </div>
-            <button type="submit">Crear Comunidad</button>
+            <button type="submit">Create Community</button>
         </form>
     </div>
 </div>

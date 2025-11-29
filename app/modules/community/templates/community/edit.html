@@ -8,18 +8,18 @@
         <form method="POST" action="{{ url_for('community.update_community', community_id=community.id) }}">
             {{ form.hidden_tag() }}
             <div>
-                <label for="name"> {{community.name}} </label>
+                <label for="name"> Name: </label>
                 {{ form.name }}
             </div>
             <div>
-                <label for="description"> {{community.description}} </label>
+                <label for="description"> Description: </label>
                 {{ form.description }}
             </div>
             <div>
-                <label for="code"> {{community.code}} </label>
+                <label for="code"> Code: </label>
                 {{ form.code }}
             </div>
-            <button type="submit">Guardar Cambios</button>
+            <button type="submit">Save Changes</button>
         </form>
     </div>
 </div>
