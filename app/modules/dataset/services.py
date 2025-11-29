@@ -3,12 +3,13 @@ import logging
 import os
 import shutil
 import uuid
+from datetime import datetime, timedelta
 from typing import Optional
 
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord
+from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord, DSDownloadRecord
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -24,6 +25,7 @@ from app.modules.hubfile.repositories import (
     HubfileViewRecordRepository,
 )
 from core.services.BaseService import BaseService
+from sqlalchemy import func
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +137,55 @@ class DataSetService(BaseService):
 
     def update_dsmetadata(self, id, **kwargs):
         return self.dsmetadata_repository.update(id, **kwargs)
+
+    def get_trending_datasets(self, period: str = "week", limit: int = 10, metric: str = "downloads"):
+        # Calcular fecha de inicio
+        if period == "week":
+            start_date = datetime.utcnow() - timedelta(days=7)
+        elif period == "month":
+            # Usar inicio del mes actual (UTC)
+            now = datetime.utcnow()
+            start_date = datetime(now.year, now.month, 1)
+        else:
+            start_date = None
+
+        # Construir query basada en métrica
+        if metric == "downloads":
+            q = self.repository.session.query(DataSet, func.count(DSDownloadRecord.id).label("count"))
+            q = q.outerjoin(DSDownloadRecord, DataSet.id == DSDownloadRecord.dataset_id)
+            # filtros opcionales
+            filters = [DataSet.created_at <= datetime.utcnow()]
+            if start_date is not None:
+                filters.append(DSDownloadRecord.download_date >= start_date)
+            q = q.filter(*filters)
+            q = q.group_by(DataSet.id).order_by(func.count(DSDownloadRecord.id).desc()).limit(limit)
+            query = q.all()
+        else:
+            q = self.repository.session.query(DataSet, func.count(DSViewRecord.id).label("count"))
+            q = q.outerjoin(DSViewRecord, DataSet.id == DSViewRecord.dataset_id)
+            filters = [DataSet.created_at <= datetime.utcnow()]
+            if start_date is not None:
+                filters.append(DSViewRecord.view_date >= start_date)
+            q = q.filter(*filters)
+            q = q.group_by(DataSet.id).order_by(func.count(DSViewRecord.id).desc()).limit(limit)
+            query = q.all()
+
+        return query
+
+    def get_trending_datasets_for_api(self, period: str = "week", limit: int = 3, metric: str = "downloads"):
+        trending = self.get_trending_datasets(period=period, limit=limit, metric=metric)
+        result = []
+        for dataset, count in trending:
+            primary_author = dataset.ds_meta_data.authors[0].name if dataset.ds_meta_data.authors else "Unknown"
+            result.append({
+                "id": dataset.id,
+                "title": dataset.ds_meta_data.title,
+                "author": primary_author,
+                "url": self.get_componenteshub_doi(dataset),
+                "count": count,
+                "metric": metric,
+            })
+        return result
 
     def get_componenteshub_doi(self, dataset: DataSet) -> str:
         domain = os.getenv("DOMAIN", "localhost")

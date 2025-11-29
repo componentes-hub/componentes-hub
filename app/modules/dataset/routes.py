@@ -221,13 +221,12 @@ def download_dataset(dataset_id):
         download_cookie=user_cookie,
     ).first()
 
-    
     # Record the download in your database
     DSDownloadRecordService().create(
-    user_id=current_user.id if current_user.is_authenticated else None,
-    dataset_id=dataset_id,
-    download_date=datetime.now(timezone.utc),
-    download_cookie=user_cookie,
+        user_id=current_user.id if current_user.is_authenticated else None,
+        dataset_id=dataset_id,
+        download_date=datetime.now(timezone.utc),
+        download_cookie=user_cookie,
     )
 
     return resp
@@ -270,3 +269,21 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route("/api/dataset/trending", methods=["GET"])
+def get_trending_datasets_api():
+    period = request.args.get("period", "week")
+    limit = request.args.get("limit", 3, type=int)
+    metric = request.args.get("metric", "downloads")
+
+    # Validate parameters
+    if period not in ["week", "month", "all"]:
+        period = "week"
+    if metric not in ["downloads", "views"]:
+        metric = "downloads"
+    if limit < 1 or limit > 50:
+        limit = 3
+
+    trending = dataset_service.get_trending_datasets_for_api(period=period, limit=limit, metric=metric)
+    return jsonify({"trending": trending, "period": period, "metric": metric}), 200
