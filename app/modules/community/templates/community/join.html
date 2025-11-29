@@ -1,0 +1,31 @@
+{% extends "base_template.html" %}
+
+{% block title %}Unirse a una Comunidad{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+    <!-- Sección para unirse a una comunidad -->
+    <div style="flex: 1;">
+        <h2>Unirse a una Comunidad</h2>
+        <form method="POST" action="{{ url_for('community.join_community') }}">
+            {{ findForm.hidden_tag() }}
+            <div>
+                <label for="joinCode">Código de la Comunidad:</label>
+                {{ findForm.joinCode }}
+            </div>
+            <button type="submit">Unirse</button>
+        </form>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+{% endblock %}
