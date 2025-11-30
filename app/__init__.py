@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 
 from core.configuration.configuration import get_app_version
 from core.managers.config_manager import ConfigManager
@@ -64,6 +65,17 @@ def create_app(config_name="development"):
             "DOMAIN": os.getenv("DOMAIN", "localhost"),
             "APP_VERSION": get_app_version(),
         }
+        
+    # CONFIG DE CORREO
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = 'componenteshub@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'ocbz rucd onqg qvwo'
+    app.config['MAIL_DEFAULT_SENDER'] = 'componenteshub@gmail.com'
+
+    mail = Mail()
+    mail.init_app(app)
 
     return app
 
