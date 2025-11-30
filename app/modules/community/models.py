@@ -17,6 +17,8 @@ class Community(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     users = db.relationship('CommunityUser', backref='community', lazy=True)
+    
+    followers = db.relationship('CommunityFollower', backref='community', lazy=True)
 
     def __repr__(self):
         return f'Community<{self.id}, {self.name}>'
