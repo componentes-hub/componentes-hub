@@ -4,7 +4,33 @@
 
 {% block content %}
 
-    <h1 class="h3 mb-3">Datasets de {{ author.name }}</h1>
+    <h1 class="h3 mb-3">{{ author.name }}</h1>
+
+    <p>
+    {% if current_user.is_authenticated %}
+        {% set following = author.user_follows | selectattr("user_id", "equalto", current_user.id) | list %}
+
+        {% if following %}
+            <form action="{{ url_for('profile.unfollow_author', author_id=author.id) }}" method="POST">
+                <button class="btn btn-danger btn-sm">Unfollow</button>
+            </form>
+        {% else %}
+            <form action="{{ url_for('profile.follow_author', author_id=author.id) }}" method="POST">
+                <button class="btn btn-primary btn-sm">Follow</button>
+            </form>
+        {% endif %}
+    {% endif %}
+    </p>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <p><strong>Followers:</strong> {{ author.user_follows|length }}</p>
 
     {% if datasets %}
         <div class="col-12">

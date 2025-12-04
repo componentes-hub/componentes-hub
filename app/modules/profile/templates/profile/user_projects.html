@@ -4,7 +4,40 @@
 
 {% block content %}
 
-    <h1 class="h3 mb-3">Datasets de {{ user.name }}</h1>
+    <h1 class="h3 mb-3">
+        {% if current_user.is_authenticated and current_user.id == user.id %}
+            <a href="{{ url_for('profile.my_profile') }}">
+                {{ user.profile.name }} {{ user.profile.surname }}
+            </a>
+        {% else %}
+            {{ user.profile.name }} {{ user.profile.surname }}
+        {% endif %}
+    </h1>
+
+    <p>
+    {% if current_user.is_authenticated and current_user.id != user.id %}
+        {% set following = user.user_followers | selectattr("follower_id", "equalto", current_user.id) | list %}
+        {% if following %}
+            <form action="{{ url_for('profile.unfollow_user', user_id=user.id) }}" method="POST">
+                <button class="btn btn-danger btn-sm">Unfollow</button>
+            </form>
+        {% else %}
+            <form action="{{ url_for('profile.follow_user', user_id=user.id) }}" method="POST">
+                <button class="btn btn-primary btn-sm">Follow</button>
+            </form>
+        {% endif %}
+    {% endif %}
+    </p>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <p><strong>Followers:</strong> {{ user.user_followers|length }}</p>
 
     {% if datasets %}
         <div class="col-12">

@@ -17,6 +17,16 @@ class Community(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     users = db.relationship('CommunityUser', backref='community', lazy=True)
+    
+    followers = db.relationship('CommunityFollower', backref='community', lazy=True)
 
     def __repr__(self):
         return f'Community<{self.id}, {self.name}>'
+    
+class CommunityFollower(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    community_id = db.Column(db.Integer, db.ForeignKey('community.id'))
+
+    def __repr__(self):
+        return f'CommunityFollower<{self.id}, {self.community_id}, {self.user_id}>'

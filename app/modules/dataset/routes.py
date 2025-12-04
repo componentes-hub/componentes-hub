@@ -30,6 +30,7 @@ from app.modules.dataset.services import (
     DSMetaDataService,
     DSViewRecordService,
 )
+from app.modules.email.services import notify_followers_new_dataset
 from app.modules.zenodo.services import ZenodoService
 
 logger = logging.getLogger(__name__)
@@ -101,6 +102,7 @@ def create_dataset():
             shutil.rmtree(file_path)
 
         msg = "Everything works!"
+        notify_followers_new_dataset(dataset)
         return jsonify({"message": msg}), 200
 
     return render_template("dataset/upload_dataset.html", form=form)
