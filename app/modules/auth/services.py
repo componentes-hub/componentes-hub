@@ -82,20 +82,17 @@ class AuthenticationService(BaseService):
 
 
 class SessionDeviceService(BaseService):
-    """Servicio para gestionar sesiones de dispositivos"""
 
     def __init__(self):
-        from app.modules.auth.repositories import SessionDeviceRepository
-        super().__init__(SessionDeviceRepository())
+        super().__init__(UserRepository())
 
     def create_session(self, user_id, request):
-        """Crea una nueva sesión para el usuario"""
         session_device = SessionDevice.create_from_request(user_id, request)
 
         self.repository.session.add(session_device)
         self.repository.session.commit()
 
-        # Guardar el token en flask session
+        # Save token in flask session
         flask_session['device_session_id'] = session_device.id
         flask_session['device_session_token'] = session_device.session_token
         flask_session.permanent = True
@@ -103,20 +100,17 @@ class SessionDeviceService(BaseService):
         return session_device
 
     def get_user_sessions(self, user_id):
-        """Obtiene todas las sesiones activas del usuario"""
         return SessionDevice.query.filter_by(user_id=user_id).order_by(
             SessionDevice.last_activity.desc()
         ).all()
 
     def get_current_session(self, user_id):
-        """Obtiene la sesión actual del usuario"""
         session_id = flask_session.get('device_session_id')
         if session_id:
             return self.repository.get_by(id=session_id, user_id=user_id)
         return None
 
     def update_last_activity(self, session_id):
-        """Actualiza la última actividad de una sesión"""
         if not session_id:
             return
 
@@ -126,7 +120,6 @@ class SessionDeviceService(BaseService):
             self.repository.session.commit()
 
     def close_session(self, session_id, user_id):
-        """Cierra una sesión específica"""
         session = self.repository.get_by(id=session_id, user_id=user_id)
 
         if session:
@@ -135,7 +128,6 @@ class SessionDeviceService(BaseService):
         return False
 
     def close_all_other_sessions(self, user_id):
-        """Cierra todas las sesiones excepto la actual"""
         current_session_id = flask_session.get('device_session_id')
 
         sessions_to_close = SessionDevice.query.filter(
@@ -150,7 +142,6 @@ class SessionDeviceService(BaseService):
         return count
 
     def rename_session(self, session_id, user_id, custom_name):
-        """Renombra una sesión con un nombre personalizado"""
         session = self.repository.get_by(id=session_id, user_id=user_id)
 
         if session:
@@ -160,7 +151,6 @@ class SessionDeviceService(BaseService):
         return None
 
     def reset_session_name(self, session_id, user_id):
-        """Resetea el nombre personalizado de una sesión al automático"""
         session = self.repository.get_by(id=session_id, user_id=user_id)
 
         if session:
