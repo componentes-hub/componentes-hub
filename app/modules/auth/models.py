@@ -4,6 +4,8 @@ from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
+from user_agents import parse
+import uuid
 
 
 class User(db.Model, UserMixin):
@@ -18,6 +20,7 @@ class User(db.Model, UserMixin):
 
     data_sets = db.relationship("DataSet", backref="user", lazy=True)
     profile = db.relationship("UserProfile", backref="user", uselist=False)
+    sessions = db.relationship("SessionDevice", backref="user", lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -37,3 +40,74 @@ class User(db.Model, UserMixin):
         from app.modules.auth.services import AuthenticationService
 
         return AuthenticationService().temp_folder_by_user(self)
+
+
+class SessionDevice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    session_token = db.Column(db.String(100), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+
+    # Nombre personalizado por el usuario
+    custom_name = db.Column(db.String(256), nullable=True)
+
+    # Información automática del dispositivo
+    device_type = db.Column(db.String(50), nullable=False)  # mobile, desktop, tablet
+    browser = db.Column(db.String(100), nullable=False)
+    os = db.Column(db.String(100), nullable=False)
+    ip_address = db.Column(db.String(45), nullable=False)
+    user_agent = db.Column(db.Text, nullable=False)
+
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    last_activity = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    is_current = db.Column(db.Boolean, default=False)  # Marca la sesión actual del usuario
+
+    def __repr__(self):
+        return f"<SessionDevice {self.get_display_name()}>"
+
+    def get_display_name(self):
+        """Retorna el nombre personalizado si existe, sino el nombre automático"""
+        if self.custom_name:
+            return self.custom_name
+        return f"{self.browser} en {self.os}"
+
+    def to_dict(self):
+        """Convierte la sesión a diccionario para JSON"""
+        return {
+            'id': self.id,
+            'session_token': self.session_token,
+            'display_name': self.get_display_name(),
+            'custom_name': self.custom_name,
+            'default_name': f"{self.browser} en {self.os}",
+            'device_type': self.device_type,
+            'browser': self.browser,
+            'os': self.os,
+            'ip_address': self.ip_address,
+            'created_at': self.created_at.isoformat(),
+            'last_activity': self.last_activity.isoformat(),
+            'is_current': self.is_current
+        }
+
+    @staticmethod
+    def create_from_request(user_id, request):
+        """Crea una nueva sesión a partir del objeto request"""
+        user_agent = request.headers.get('User-Agent', '')
+        ua = parse(user_agent)
+
+        # Determinar tipo de dispositivo
+        if ua.is_mobile:
+            device_type = 'mobile'
+        elif ua.is_tablet:
+            device_type = 'tablet'
+        else:
+            device_type = 'desktop'
+
+        session = SessionDevice(
+            user_id=user_id,
+            device_type=device_type,
+            browser=ua.browser.family,
+            os=ua.os.family,
+            ip_address=request.remote_addr,
+            user_agent=user_agent
+        )
+
+        return session
