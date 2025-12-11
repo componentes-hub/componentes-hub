@@ -47,10 +47,10 @@ class SessionDevice(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     session_token = db.Column(db.String(100), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
 
-    # Nombre personalizado por el usuario
+    # Custom name given by the user to identify different sessions
     custom_name = db.Column(db.String(256), nullable=True)
 
-    # Información automática del dispositivo
+    # Device info
     device_type = db.Column(db.String(50), nullable=False)  # mobile, desktop, tablet
     browser = db.Column(db.String(100), nullable=False)
     os = db.Column(db.String(100), nullable=False)
@@ -59,19 +59,17 @@ class SessionDevice(db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     last_activity = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-    is_current = db.Column(db.Boolean, default=False)  # Marca la sesión actual del usuario
+    is_current = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f"<SessionDevice {self.get_display_name()}>"
 
     def get_display_name(self):
-        """Retorna el nombre personalizado si existe, sino el nombre automático"""
         if self.custom_name:
             return self.custom_name
         return f"{self.browser} en {self.os}"
 
     def to_dict(self):
-        """Convierte la sesión a diccionario para JSON"""
         return {
             'id': self.id,
             'session_token': self.session_token,
@@ -89,7 +87,6 @@ class SessionDevice(db.Model):
 
     @staticmethod
     def create_from_request(user_id, request):
-        """Crea una nueva sesión a partir del objeto request"""
         user_agent = request.headers.get('User-Agent', '')
         ua = parse(user_agent)
 

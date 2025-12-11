@@ -1,13 +1,16 @@
 import os
 
 from flask_login import current_user, login_user
+from flask import session as flask_session
 
-from app.modules.auth.models import User
+from app.modules.auth.models import User, SessionDevice
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.models import UserProfile
 from app.modules.profile.repositories import UserProfileRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
+
+from datetime import datetime, timezone
 
 
 class AuthenticationService(BaseService):
@@ -76,3 +79,92 @@ class AuthenticationService(BaseService):
 
     def temp_folder_by_user(self, user: User) -> str:
         return os.path.join(uploads_folder_name(), "temp", str(user.id))
+
+
+class SessionDeviceService(BaseService):
+    """Servicio para gestionar sesiones de dispositivos"""
+
+    def __init__(self):
+        from app.modules.auth.repositories import SessionDeviceRepository
+        super().__init__(SessionDeviceRepository())
+
+    def create_session(self, user_id, request):
+        """Crea una nueva sesión para el usuario"""
+        session_device = SessionDevice.create_from_request(user_id, request)
+
+        self.repository.session.add(session_device)
+        self.repository.session.commit()
+
+        # Guardar el token en flask session
+        flask_session['device_session_id'] = session_device.id
+        flask_session['device_session_token'] = session_device.session_token
+        flask_session.permanent = True
+
+        return session_device
+
+    def get_user_sessions(self, user_id):
+        """Obtiene todas las sesiones activas del usuario"""
+        return SessionDevice.query.filter_by(user_id=user_id).order_by(
+            SessionDevice.last_activity.desc()
+        ).all()
+
+    def get_current_session(self, user_id):
+        """Obtiene la sesión actual del usuario"""
+        session_id = flask_session.get('device_session_id')
+        if session_id:
+            return self.repository.get_by(id=session_id, user_id=user_id)
+        return None
+
+    def update_last_activity(self, session_id):
+        """Actualiza la última actividad de una sesión"""
+        if not session_id:
+            return
+
+        session = self.repository.get(session_id)
+        if session:
+            session.last_activity = datetime.now(timezone.utc)
+            self.repository.session.commit()
+
+    def close_session(self, session_id, user_id):
+        """Cierra una sesión específica"""
+        session = self.repository.get_by(id=session_id, user_id=user_id)
+
+        if session:
+            self.repository.delete(session_id)
+            return True
+        return False
+
+    def close_all_other_sessions(self, user_id):
+        """Cierra todas las sesiones excepto la actual"""
+        current_session_id = flask_session.get('device_session_id')
+
+        sessions_to_close = SessionDevice.query.filter(
+            SessionDevice.user_id == user_id,
+            SessionDevice.id != current_session_id
+        ).all()
+
+        count = len(sessions_to_close)
+        for session in sessions_to_close:
+            self.repository.delete(session.id)
+
+        return count
+
+    def rename_session(self, session_id, user_id, custom_name):
+        """Renombra una sesión con un nombre personalizado"""
+        session = self.repository.get_by(id=session_id, user_id=user_id)
+
+        if session:
+            session.custom_name = custom_name
+            self.repository.session.commit()
+            return session
+        return None
+
+    def reset_session_name(self, session_id, user_id):
+        """Resetea el nombre personalizado de una sesión al automático"""
+        session = self.repository.get_by(id=session_id, user_id=user_id)
+
+        if session:
+            session.custom_name = None
+            self.repository.session.commit()
+            return session
+        return None
