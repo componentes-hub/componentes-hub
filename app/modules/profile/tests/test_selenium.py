@@ -8,8 +8,7 @@ from core.environment.host import get_host_for_selenium_testing
 
 def test_view_user_profile_visual():
 
-    # Inicializa el driver y fuerza ventana visible
-    driver = initialize_driver(headless=False)  # ⚠ ojo: modo visible
+    driver = initialize_driver()
     host = get_host_for_selenium_testing()
 
     try:
@@ -32,8 +31,14 @@ def test_view_user_profile_visual():
         driver.find_element(By.LINK_TEXT, "Sample dataset 2").click()
         time.sleep(1)
 
+        print("Test passed!")
+
     except NoSuchElementException as e:
         raise AssertionError(f"Elemento no encontrado: {e}")
 
     finally:
         close_driver(driver)
+
+
+# Call the test function
+test_view_user_profile_visual()
