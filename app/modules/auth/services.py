@@ -124,6 +124,7 @@ class SessionDeviceService(BaseService):
 
         if session:
             self.repository.delete(session_id)
+            self.repository.session.commit()
             return True
         return False
 
@@ -138,5 +139,6 @@ class SessionDeviceService(BaseService):
         count = len(sessions_to_close)
         for session in sessions_to_close:
             self.repository.delete(session.id)
+        self.repository.session.commit()
 
         return count
