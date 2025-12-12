@@ -4,7 +4,7 @@
 
 # componenteshub.io
 
-Repository of feature models in Comp format integrated with Zenodo and flamapy following Open Science principles - Developed by DiversoLab
+Repository of components models in Comp format integrated with Zenodo and flamapy following Open Science principles - Developed by DiversoLab
 
 ## Official documentation
 

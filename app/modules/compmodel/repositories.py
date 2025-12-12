@@ -1,14 +1,14 @@
 from sqlalchemy import func
 
-from app.modules.featuremodel.models import FeatureModel, FMMetaData
+from app.modules.compmodel.models import CompModel, FMMetaData
 from core.repositories.BaseRepository import BaseRepository
 
 
-class FeatureModelRepository(BaseRepository):
+class CompModelRepository(BaseRepository):
     def __init__(self):
-        super().__init__(FeatureModel)
+        super().__init__(CompModel)
 
-    def count_feature_models(self) -> int:
+    def count_comp_models(self) -> int:
         max_id = self.model.query.with_entities(func.max(self.model.id)).scalar()
         return max_id if max_id is not None else 0
 
