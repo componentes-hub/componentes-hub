@@ -218,4 +218,3 @@ def close_all_other_sessions():
         'message': f'{count} session(s) closed',
         'closed_count': count
     }), 200
-
