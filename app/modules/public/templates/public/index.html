@@ -43,7 +43,7 @@
                             <div class="col-12">
                                 {% for author in dataset.ds_meta_data.authors %}
                                     <p class="p-0 m-0">
-                                        <a href="{{ url_for('profile.proyectos_autor', author_id=author.id) }}">{{ author.name }}</a>                                 
+                                        <a href="{{ url_for('profile.proyectos_autor', author_id=author.id) }}">{{ author.name }}</a>
                                         {% if author.affiliation %}
                                             ({{ author.affiliation }})
                                         {% endif %}
@@ -52,6 +52,11 @@
                                         {% endif %}
                                     </p>
                                 {% endfor %}
+
+                                {# Show dataset's community (uploader's community) if available #}
+                                {% if dataset_communities and dataset_communities.get(dataset.id) %}
+                                    <p class="p-0 m-0 text-muted small">Community: <strong>{{ dataset_communities.get(dataset.id) }}</strong></p>
+                                {% endif %}
                             </div>
 
 
@@ -189,6 +194,9 @@
                                                 <a href="{{ d.url }}">{{ d.title }}</a>
                                                 <div class="text-muted small">
                                                     by {{ d.author }}
+                                                    {% if d.community %}
+                                                        &middot; <span class="text-muted">{{ d.community }}</span>
+                                                    {% endif %}
                                                 </div>
                                             </div>
 
