@@ -33,6 +33,7 @@ def show_signup_form():
 
         # Log user
         login_user(user, remember=True)
+        session_device_service.create_session(user.id, request)
         return redirect(url_for("public.index"))
 
     return render_template("auth/signup_form.html", form=form)
@@ -51,6 +52,7 @@ def login():
                 session["pre_2fa_user_id"] = user.id
                 return redirect(url_for("auth.two_factor_verify"))
             login_user(user, remember=form.remember_me.data)
+            session_device_service.create_session(user.id, request)
             return redirect(url_for("public.index"))
         return render_template("auth/login_form.html", form=form, error="Invalid credentials")
     # Siempre retornar el formulario en GET o si no se cumple el POST
@@ -138,38 +140,35 @@ def two_factor_confirm():
 
 @auth_bp.route("/logout")
 def logout():
+    session_id = session.get('device_session_id')
+    if session_id and current_user.is_authenticated:
+        session_device_service.close_session(session_id, current_user.id)
     logout_user()
     return redirect(url_for("public.index"))
 
 
-@auth_bp.route("/sessions/active", methods=["GET"])
-def get_active_sessions():
+@auth_bp.route("/sessions", methods=["GET"])
+def show_sessions():
+    """Display all active sessions for the current user"""
     if not current_user.is_authenticated:
-        return jsonify({'success': False, 'message': 'No autorizado'}), 401
+        return redirect(url_for("auth.login"))
 
-    sessions = authentication_service.get_user_sessions(current_user.id)
-    current_session = authentication_service.get_current_session(current_user.id)
+    sessions = session_device_service.get_user_sessions(current_user.id)
+    current_session = session_device_service.get_current_session(current_user.id)
 
-    sessions_data = []
+    # Mark current session
     for sess in sessions:
-        data = sess.to_dict()
-        if current_session and sess.id == current_session.id:
-            data['is_current'] = True
-        sessions_data.append(data)
+        sess.is_current = (current_session and sess.id == current_session.id)
 
-    return jsonify({
-        'success': True,
-        'sessions': sessions_data,
-        'total': len(sessions_data)
-    }), 200
+    return render_template("auth/sessions.html", sessions=sessions)
 
 
 @auth_bp.route("/sessions/current", methods=["GET"])
 def get_current_session():
     if not current_user.is_authenticated:
-        return jsonify({'success': False, 'message': 'No autorizado'}), 401
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
-    current_session = authentication_service.get_current_session(current_user.id)
+    current_session = session_device_service.get_current_session(current_user.id)
 
     if current_session:
         return jsonify({
@@ -179,7 +178,7 @@ def get_current_session():
 
     return jsonify({
         'success': False,
-        'message': 'No hay sesión activa'
+        'message': 'No active session'
     }), 404
 
 
@@ -210,68 +209,13 @@ def close_session(session_id):
 @auth_bp.route("/sessions/close-all-others", methods=["POST"])
 def close_all_other_sessions():
     if not current_user.is_authenticated:
-        return jsonify({'success': False, 'message': 'No autorizado'}), 401
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
-    count = authentication_service.close_all_other_sessions(current_user.id)
+    count = session_device_service.close_all_other_sessions(current_user.id)
 
     return jsonify({
         'success': True,
-        'message': f'{count} sesión(es) cerrada(s)',
+        'message': f'{count} session(s) closed',
         'closed_count': count
     }), 200
 
-
-@auth_bp.route("/sessions/<int:session_id>/rename", methods=["PATCH"])
-def rename_session(session_id):
-    if not current_user.is_authenticated:
-        return jsonify({'success': False, 'message': 'No autorizado'}), 401
-
-    data = request.get_json()
-
-    if not data or 'name' not in data:
-        return jsonify({
-            'success': False,
-            'message': 'El campo "name" es requerido'
-        }), 400
-
-    custom_name = data.get('name', '').strip()
-
-    if not custom_name or len(custom_name) > 256:
-        return jsonify({
-            'success': False,
-            'message': 'El nombre debe tener entre 1 y 256 caracteres'
-        }), 400
-
-    sess = authentication_service.rename_session(session_id, current_user.id, custom_name)
-
-    if sess:
-        return jsonify({
-            'success': True,
-            'message': 'Dispositivo renombrado exitosamente',
-            'session': sess.to_dict()
-        }), 200
-
-    return jsonify({
-        'success': False,
-        'message': 'No se encontró la sesión'
-    }), 404
-
-
-@auth_bp.route("/sessions/<int:session_id>/rename", methods=["DELETE"])
-def reset_session_name(session_id):
-    if not current_user.is_authenticated:
-        return jsonify({'success': False, 'message': 'No autorizado'}), 401
-
-    sess = authentication_service.reset_session_name(session_id, current_user.id)
-
-    if sess:
-        return jsonify({
-            'success': True,
-            'message': 'Nombre resetado al valor por defecto',
-            'session': sess.to_dict()
-        }), 200
-
-    return jsonify({
-        'success': False,
-        'message': 'No se encontró la sesión'
-    }), 404

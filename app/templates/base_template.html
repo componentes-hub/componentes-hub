@@ -127,6 +127,12 @@ chico sundermann">
                     </li>
 
                     <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('auth.show_sessions') }}">
+                            <i class="align-middle" data-feather="lock"></i> <span class="align-middle">Sessions</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item">
                         <a class="sidebar-link" href="{{ url_for('auth.logout') }}">
                             <i class="align-middle" data-feather="log-out"></i> <span
                                 class="align-middle">Log out</span>

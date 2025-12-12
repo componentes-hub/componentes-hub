@@ -4,12 +4,6 @@
 
 {% block content %}
 
-<div style="display: flex; gap: 8px; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
-    <div>
-        <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-outline-secondary">Back to Profile</a>
-    </div>
-</div>
-
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         <ul class="flashes">
@@ -62,19 +56,16 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p class="mb-2"><strong>System:</strong> {{ session.os }} • {{ session.browser }}</p>
+                            <p class="mb-2"><strong>System:</strong> {{ session.os }} - {{ session.browser }}</p>
                             <p class="mb-2"><strong>IP Address:</strong> {{ session.ip_address }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p class="mb-2"><strong>Created:</strong> {{ session.created_at|strftime('%d/%m/%Y %H:%M') }}</p>
-                            <p class="mb-2"><strong>Last activity:</strong> {{ session.last_activity|strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p class="mb-2"><strong>Created:</strong> {{ session.created_at }}</p>
+                            <p class="mb-2"><strong>Last activity:</strong> {{ session.last_activity }}</p>
                         </div>
                     </div>
 
                     <div style="display: flex; gap: 8px;">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-session-id="{{ session.id }}" onclick="openRenameModal(this)">
-                            <i class="bi bi-pencil"></i> Rename
-                        </button>
                         {% if not session.is_current %}
                             <button type="button" class="btn btn-outline-danger btn-sm" data-session-id="{{ session.id }}" onclick="closeSession(this)">
                                 <i class="bi bi-x-lg"></i> Close Session
@@ -107,31 +98,6 @@
     </div>
 {% endif %}
 
-<div class="modal fade" id="renameDeviceModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Rename device</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="deviceNameInput" class="form-label">New name</label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="deviceNameInput" 
-                           placeholder="e.g. My laptop, Work PC"
-                           maxlength="256"
-                           required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveRename()">Save</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 {% endblock %}
 
@@ -147,7 +113,7 @@ function closeSession(button) {
         return;
     }
 
-    fetch(`/auth/sessions/${sessionId}`, {
+    fetch(`/sessions/${sessionId}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json'
@@ -173,7 +139,7 @@ function closeAllOthers() {
         return;
     }
 
-    fetch('/auth/sessions/close-all-others', {
+    fetch('/sessions/close-all-others', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -190,51 +156,6 @@ function closeAllOthers() {
     })
     .catch(error => {
         alert('Error closing sessions');
-        console.error(error);
-    });
-}
-
-// Open rename modal
-function openRenameModal(button) {
-    const sessionId = button.getAttribute('data-session-id');
-    currentSessionId = sessionId;
-    
-    // Get current name from the session row
-    const sessionRow = button.closest('.card');
-    const displayName = sessionRow.querySelector('strong').textContent.trim();
-    
-    document.getElementById('deviceNameInput').value = displayName;
-    
-    const modal = new bootstrap.Modal(document.getElementById('renameDeviceModal'));
-    modal.show();
-}
-
-// Save rename
-function saveRename() {
-    const newName = document.getElementById('deviceNameInput').value;
-    
-    if (!newName.trim()) {
-        alert('Device name cannot be empty');
-        return;
-    }
-
-    fetch(`/auth/sessions/${currentSessionId}/rename`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: newName })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        alert('Error renaming session');
         console.error(error);
     });
 }

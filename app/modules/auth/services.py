@@ -4,7 +4,7 @@ from flask_login import current_user, login_user
 from flask import session as flask_session
 
 from app.modules.auth.models import User, SessionDevice
-from app.modules.auth.repositories import UserRepository
+from app.modules.auth.repositories import UserRepository, SessionDeviceRepository
 from app.modules.profile.models import UserProfile
 from app.modules.profile.repositories import UserProfileRepository
 from core.configuration.configuration import uploads_folder_name
@@ -84,7 +84,7 @@ class AuthenticationService(BaseService):
 class SessionDeviceService(BaseService):
 
     def __init__(self):
-        super().__init__(UserRepository())
+        super().__init__(SessionDeviceRepository())
 
     def create_session(self, user_id, request):
         session_device = SessionDevice.create_from_request(user_id, request)
@@ -140,21 +140,3 @@ class SessionDeviceService(BaseService):
             self.repository.delete(session.id)
 
         return count
-
-    def rename_session(self, session_id, user_id, custom_name):
-        session = self.repository.get_by(id=session_id, user_id=user_id)
-
-        if session:
-            session.custom_name = custom_name
-            self.repository.session.commit()
-            return session
-        return None
-
-    def reset_session_name(self, session_id, user_id):
-        session = self.repository.get_by(id=session_id, user_id=user_id)
-
-        if session:
-            session.custom_name = None
-            self.repository.session.commit()
-            return session
-        return None
