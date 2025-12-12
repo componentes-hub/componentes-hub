@@ -35,6 +35,23 @@ def create_app(config_name="development"):
     module_manager = ModuleManager(app)
     module_manager.register_modules()
 
+    @app.before_request
+    def validate_session():
+        from flask_login import current_user, logout_user
+        from flask import session, redirect, url_for
+
+        if current_user.is_authenticated:
+            from app.modules.auth.services import SessionDeviceService
+
+            session_device_service = SessionDeviceService()
+            session_id = session.get('device_session_id')
+
+            if session_id:
+                current_session = session_device_service.get_current_session(current_user.id)
+                if not current_session:
+                    logout_user()
+                    return redirect(url_for('auth.login'))
+
     # Register login manager
     from flask_login import LoginManager
 
@@ -65,7 +82,7 @@ def create_app(config_name="development"):
             "DOMAIN": os.getenv("DOMAIN", "localhost"),
             "APP_VERSION": get_app_version(),
         }
-        
+
     # CONFIG DE CORREO
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
