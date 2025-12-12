@@ -1,0 +1,163 @@
+{% extends "base_template.html" %}
+
+{% block title %}Account - Active Sessions{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+<h2>Active Sessions</h2>
+
+<p><small class="text-muted">Manage your active sessions across different devices. Close sessions on unfamiliar devices to keep your account secure.</small></p>
+
+{% if sessions %}
+
+    <div class="row">
+        <div class="col-12 col-md-8 col-lg-12">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header card-dark">
+                    <strong>Summary</strong>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0"><strong>Total active sessions:</strong> <span class="badge bg-primary">{{ sessions|length }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for session in sessions %}
+        <div class="col-12 col-md-8 col-lg-12">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header card-dark">
+                    <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            {% if session.device_type == 'mobile' %}
+                                <i class="bi bi-phone fs-5"></i>
+                            {% elif session.device_type == 'tablet' %}
+                                <i class="bi bi-tablet fs-5"></i>
+                            {% else %}
+                                <i class="bi bi-laptop fs-5"></i>
+                            {% endif %}
+                            <strong>{{ session.display_name }}</strong>
+                            {% if session.is_current %}
+                                <span class="badge bg-success">Current session</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>System:</strong> {{ session.os }} - {{ session.browser }}</p>
+                            <p class="mb-2"><strong>IP Address:</strong> {{ session.ip_address }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Created:</strong> {{ session.created_at }}</p>
+                            <p class="mb-2"><strong>Last activity:</strong> {{ session.last_activity }}</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        {% if not session.is_current %}
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-session-id="{{ session.id }}" onclick="closeSession(this)">
+                                <i class="bi bi-x-lg"></i> Close Session
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-12 col-md-8 col-lg-12">
+            <button type="button" class="btn btn-danger btn-sm" onclick="closeAllOthers()">
+                <i class="bi bi-lock"></i> Close all other sessions
+            </button>
+            <small class="d-block text-muted mt-2">This will close sessions on all other devices</small>
+        </div>
+    </div>
+
+{% else %}
+    <div class="row">
+        <div class="col-12 col-md-8 col-lg-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-0">No active sessions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentSessionId = null;
+
+// Close a specific session
+function closeSession(button) {
+    const sessionId = button.getAttribute('data-session-id');
+    
+    if (!confirm('Are you sure you want to close this session?')) {
+        return;
+    }
+
+    fetch(`/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error closing session');
+        console.error(error);
+    });
+}
+
+// Close all other sessions
+function closeAllOthers() {
+    if (!confirm('Are you sure? This will close all sessions except this one.')) {
+        return;
+    }
+
+    fetch('/sessions/close-all-others', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error closing sessions');
+        console.error(error);
+    });
+}
+</script>
+{% endblock %}

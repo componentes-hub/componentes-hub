@@ -1,7 +1,7 @@
 from core.seeders.BaseSeeder import BaseSeeder
 
 
-class FeaturemodelSeeder(BaseSeeder):
+class CompmodelSeeder(BaseSeeder):
 
     def run(self):
 

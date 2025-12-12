@@ -1,4 +1,4 @@
-from app.modules.auth.models import User
+from app.modules.auth.models import User, SessionDevice
 from core.repositories.BaseRepository import BaseRepository
 
 
@@ -19,3 +19,11 @@ class UserRepository(BaseRepository):
 
     def get_by_email(self, email: str):
         return self.model.query.filter_by(email=email).first()
+
+
+class SessionDeviceRepository(BaseRepository):
+    def __init__(self):
+        super().__init__(SessionDevice)
+
+    def get_by(self, **kwargs):
+        return self.model.query.filter_by(**kwargs).first()

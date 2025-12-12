@@ -111,38 +111,7 @@
                     </div>
                 </div>
                 {% endif %}
-
-                {% if dataset.ds_meta_data.dataset_doi %}
-                <div class="row mb-2">
-                    
-                        <div class="col-md-4 col-12">
-                            <span class=" text-secondary">
-                                Zenodo record
-                            </span>
-                        </div>
-
-                        {% if FLASK_ENV == 'production' %}
-                            <div class="col-md-8 col-12">
-                                <a href="https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
-                                    https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
-                                </a>
-                            </div>
-                        {% elif FLASK_ENV == 'development' %}
-                            <div class="col-md-8 col-12">
-                                <a href="https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
-                                    https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
-                                </a>
-                            </div>
-                        {% else %}
-                            <div class="col-md-8 col-12">
-                                <a href="https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
-                                    https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
-                                </a>
-                            </div>
-                        {% endif %}
-
-                </div>
-                {% endif %}
+                
                 <div class="row mb-2">
 
                     <div class="col-md-4 col-12">
@@ -195,7 +164,7 @@
                 <h3> Related publication </h3>
                 
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
-                <i>ComponentesHub: A feature model data repository using Comp and open science principles</i>,
+                <i>ComponentesHub: A comp model data repository using Comp and open science principles</i>,
                 Journal of Systems and Software,
                 2024,
                 112150,
@@ -250,8 +219,8 @@
             </div>
             
 
-            {% for feature_model in dataset.feature_models %}
-                {% for file in feature_model.files %}
+            {% for comp_model in dataset.comp_models %}
+                {% for file in comp_model.files %}
                     <div class="list-group-item">
                         
                         <div class="row">
@@ -343,7 +312,7 @@
     <div class="modal-dialog modal-lg" style="height: 80vh; display: flex; align-items: center;">
         <div class="modal-content" style="height: 80vh;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="modal-title" id="fileViewerModalLabel">Feature model view</h5>
+                <h5 class="modal-title" id="fileViewerModalLabel">Comp model view</h5>
                 <div>
                     <a href="#" class="btn btn-outline-primary btn-sm" id="downloadButton"
                         style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">

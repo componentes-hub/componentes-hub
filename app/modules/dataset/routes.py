@@ -30,6 +30,7 @@ from app.modules.dataset.services import (
     DSMetaDataService,
     DSViewRecordService,
 )
+from app.modules.email.services import notify_followers_new_dataset
 from app.modules.zenodo.services import ZenodoService
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ def create_dataset():
             logger.info("Creating dataset...")
             dataset = dataset_service.create_from_form(form=form, current_user=current_user)
             logger.info(f"Created dataset: {dataset}")
-            dataset_service.move_feature_models(dataset)
+            dataset_service.move_comp_models(dataset)
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
@@ -73,17 +74,17 @@ def create_dataset():
             data = {}
             zenodo_response_json = {}
             logger.exception(f"Exception while create dataset data in Zenodo {exc}")
-
-        if data.get("conceptrecid"):
-            deposition_id = data.get("id")
+        
+        deposition_id = data.get("id")
+        if data.get("conceptrecid") or deposition_id:
 
             # update dataset with deposition id in Zenodo
             dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
 
             try:
-                # iterate for each feature model (one feature model = one request to Zenodo)
-                for feature_model in dataset.feature_models:
-                    zenodo_service.upload_file(dataset, deposition_id, feature_model)
+                # iterate for each comp model (one comp model = one request to Zenodo)
+                for comp_model in dataset.comp_models:
+                    zenodo_service.upload_file(dataset, deposition_id, comp_model)
 
                 # publish deposition
                 zenodo_service.publish_deposition(deposition_id)
@@ -92,7 +93,7 @@ def create_dataset():
                 deposition_doi = zenodo_service.get_doi(deposition_id)
                 dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
             except Exception as e:
-                msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
+                msg = f"it has not been possible upload comp models in Zenodo and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
 
         # Delete temp folder
@@ -101,6 +102,7 @@ def create_dataset():
             shutil.rmtree(file_path)
 
         msg = "Everything works!"
+        notify_followers_new_dataset(dataset)
         return jsonify({"message": msg}), 200
 
     return render_template("dataset/upload_dataset.html", form=form)
@@ -221,13 +223,12 @@ def download_dataset(dataset_id):
         download_cookie=user_cookie,
     ).first()
 
-    
     # Record the download in your database
     DSDownloadRecordService().create(
-    user_id=current_user.id if current_user.is_authenticated else None,
-    dataset_id=dataset_id,
-    download_date=datetime.now(timezone.utc),
-    download_cookie=user_cookie,
+        user_id=current_user.id if current_user.is_authenticated else None,
+        dataset_id=dataset_id,
+        download_date=datetime.now(timezone.utc),
+        download_cookie=user_cookie,
     )
 
     return resp
@@ -270,3 +271,21 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route("/api/dataset/trending", methods=["GET"])
+def get_trending_datasets_api():
+    period = request.args.get("period", "week")
+    limit = request.args.get("limit", 3, type=int)
+    metric = request.args.get("metric", "downloads")
+
+    # Validate parameters
+    if period not in ["week", "month", "all"]:
+        period = "week"
+    if metric not in ["downloads", "views"]:
+        metric = "downloads"
+    if limit < 1 or limit > 50:
+        limit = 3
+
+    trending = dataset_service.get_trending_datasets_for_api(period=period, limit=limit, metric=metric)
+    return jsonify({"trending": trending, "period": period, "metric": metric}), 200

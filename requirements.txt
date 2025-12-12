@@ -122,6 +122,7 @@ typing_extensions==4.14.1
 tzdata==2025.2
 Unidecode==1.4.0
 urllib3==2.5.0
+user-agents==2.2.0
 uvlparser==2.0.1
 webdriver-manager==4.0.2
 webencodings==0.5.1
@@ -133,3 +134,6 @@ WTForms==3.2.1
 zope.event==5.1.1
 zope.interface==7.2
 zstandard==0.23.0
+
+pyotp
+qrcode

@@ -1,0 +1,37 @@
+{% extends "base_template.html" %}
+
+{% block title %}Verificación 2FA{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-3"><b>Verificación</b> 2FA</h1>
+<div class="row">
+    <div class="col-12">
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-6 col-lg-6 col-xs-12">
+                    <div class="mb-3">
+                        {{ form.token.label(class="form-label") }}
+                        {{ form.token(class="form-control",placeholder="Ingresa el código de 6 dígitos") }}
+                        {% for error in form.token.errors %}
+                        <span style="color: red;">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-12">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </div>
+            {% if error %}
+            <div class="row">
+                <div class="mt-3 col-lg-6 col-12">
+                    <span style="color: red;">{{ error }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

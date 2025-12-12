@@ -3,12 +3,13 @@ import logging
 import os
 import shutil
 import uuid
+from datetime import datetime, timedelta
 from typing import Optional
 
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord
+from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord, DSDownloadRecord
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -17,13 +18,15 @@ from app.modules.dataset.repositories import (
     DSMetaDataRepository,
     DSViewRecordRepository,
 )
-from app.modules.featuremodel.repositories import FeatureModelRepository, FMMetaDataRepository
+from app.modules.compmodel.repositories import CompModelRepository, FMMetaDataRepository
 from app.modules.hubfile.repositories import (
     HubfileDownloadRecordRepository,
     HubfileRepository,
     HubfileViewRecordRepository,
 )
+from app.modules.community.models import CommunityUser
 from core.services.BaseService import BaseService
+from sqlalchemy import func
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +42,7 @@ def calculate_checksum_and_size(file_path):
 class DataSetService(BaseService):
     def __init__(self):
         super().__init__(DataSetRepository())
-        self.feature_model_repository = FeatureModelRepository()
+        self.comp_model_repository = CompModelRepository()
         self.author_repository = AuthorRepository()
         self.dsmetadata_repository = DSMetaDataRepository()
         self.fmmetadata_repository = FMMetaDataRepository()
@@ -49,7 +52,7 @@ class DataSetService(BaseService):
         self.dsviewrecord_repostory = DSViewRecordRepository()
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
 
-    def move_feature_models(self, dataset: DataSet):
+    def move_comp_models(self, dataset: DataSet):
         current_user = AuthenticationService().get_authenticated_user()
         source_dir = current_user.temp_folder()
 
@@ -58,8 +61,8 @@ class DataSetService(BaseService):
 
         os.makedirs(dest_dir, exist_ok=True)
 
-        for feature_model in dataset.feature_models:
-            comp_filename = feature_model.fm_meta_data.comp_filename
+        for comp_model in dataset.comp_models:
+            comp_filename = comp_model.fm_meta_data.comp_filename
             shutil.move(os.path.join(source_dir, comp_filename), dest_dir)
 
     def get_synchronized(self, current_user_id: int) -> DataSet:
@@ -77,8 +80,8 @@ class DataSetService(BaseService):
     def count_synchronized_datasets(self):
         return self.repository.count_synchronized_datasets()
 
-    def count_feature_models(self):
-        return self.feature_model_service.count_feature_models()
+    def count_comp_models(self):
+        return self.comp_model_service.count_comp_models()
 
     def count_authors(self) -> int:
         return self.author_repository.count()
@@ -107,23 +110,23 @@ class DataSetService(BaseService):
 
             dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
 
-            for feature_model in form.feature_models:
-                comp_filename = feature_model.comp_filename.data
-                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
-                for author_data in feature_model.get_authors():
+            for comp_model in form.comp_models:
+                comp_filename = comp_model.comp_filename.data
+                fmmetadata = self.fmmetadata_repository.create(commit=False, **comp_model.get_fmmetadata())
+                for author_data in comp_model.get_authors():
                     author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
                     fmmetadata.authors.append(author)
 
-                fm = self.feature_model_repository.create(
+                fm = self.comp_model_repository.create(
                     commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
                 )
 
-                # associated files in feature model
+                # associated files in comp model
                 file_path = os.path.join(current_user.temp_folder(), comp_filename)
                 checksum, size = calculate_checksum_and_size(file_path)
 
                 file = self.hubfilerepository.create(
-                    commit=False, name=comp_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                    commit=False, name=comp_filename, checksum=checksum, size=size, comp_model_id=fm.id
                 )
                 fm.files.append(file)
             self.repository.session.commit()
@@ -135,6 +138,65 @@ class DataSetService(BaseService):
 
     def update_dsmetadata(self, id, **kwargs):
         return self.dsmetadata_repository.update(id, **kwargs)
+
+    def get_trending_datasets(self, period: str = "week", limit: int = 10, metric: str = "downloads"):
+        # Calcular fecha de inicio
+        if period == "week":
+            start_date = datetime.utcnow() - timedelta(days=7)
+        elif period == "month":
+            # Usar inicio del mes actual (UTC)
+            now = datetime.utcnow()
+            start_date = datetime(now.year, now.month, 1)
+        else:
+            start_date = None
+
+        # Construir query basada en métrica
+        if metric == "downloads":
+            q = self.repository.session.query(DataSet, func.count(DSDownloadRecord.id).label("count"))
+            q = q.outerjoin(DSDownloadRecord, DataSet.id == DSDownloadRecord.dataset_id)
+            # filtros opcionales
+            filters = [DataSet.created_at <= datetime.utcnow()]
+            if start_date is not None:
+                filters.append(DSDownloadRecord.download_date >= start_date)
+            q = q.filter(*filters)
+            q = q.group_by(DataSet.id).order_by(func.count(DSDownloadRecord.id).desc()).limit(limit)
+            query = q.all()
+        else:
+            q = self.repository.session.query(DataSet, func.count(DSViewRecord.id).label("count"))
+            q = q.outerjoin(DSViewRecord, DataSet.id == DSViewRecord.dataset_id)
+            filters = [DataSet.created_at <= datetime.utcnow()]
+            if start_date is not None:
+                filters.append(DSViewRecord.view_date >= start_date)
+            q = q.filter(*filters)
+            q = q.group_by(DataSet.id).order_by(func.count(DSViewRecord.id).desc()).limit(limit)
+            query = q.all()
+
+        return query
+
+    def get_trending_datasets_for_api(self, period: str = "week", limit: int = 3, metric: str = "downloads"):
+        trending = self.get_trending_datasets(period=period, limit=limit, metric=metric)
+        result = []
+        for dataset, count in trending:
+            primary_author = dataset.ds_meta_data.authors[0].name if dataset.ds_meta_data.authors else "Unknown"
+            # determine community name if uploader belongs to any community
+            community_name = None
+            try:
+                cu = CommunityUser.query.filter_by(user_id=dataset.user_id).first()
+                if cu and getattr(cu, "community", None):
+                    community_name = cu.community.name
+            except Exception:
+                community_name = None
+
+            result.append({
+                "id": dataset.id,
+                "title": dataset.ds_meta_data.title,
+                "author": primary_author,
+                "community": community_name,
+                "url": self.get_componenteshub_doi(dataset),
+                "count": count,
+                "metric": metric,
+            })
+        return result
 
     def get_componenteshub_doi(self, dataset: DataSet) -> str:
         domain = os.getenv("DOMAIN", "localhost")
