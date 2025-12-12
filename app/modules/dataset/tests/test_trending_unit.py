@@ -2,9 +2,7 @@ from app.modules.dataset.services import DataSetService
 from app.modules.dataset import routes as dataset_routes
 
 
-# Creamos estas clases para simular modelos reales de la base de datos
-
-
+# Clases dummy usadas para simular objetos reales de base de datos
 class _DummyAuthor:
     def __init__(self, name):
         self.name = name
@@ -18,9 +16,10 @@ class _DummyMeta:
 
 
 class _DummyDataset:
-    def __init__(self, id_, meta):
+    def __init__(self, id_, meta, user_id=None):
         self.id = id_
         self.ds_meta_data = meta
+        self.user_id = user_id
 
 
 def test_get_trending_datasets_for_api_happy_path(monkeypatch):
@@ -106,7 +105,6 @@ def test_api_route_invalid_limit_normalized(test_client, monkeypatch):
 
     captured = {}
 
-    # Esta función captura el limit que recibe la ruta
     def fake_api(period, limit, metric):
         captured["period"] = period
         captured["limit"] = limit
@@ -121,9 +119,7 @@ def test_api_route_invalid_limit_normalized(test_client, monkeypatch):
     data = resp.get_json()
 
     assert resp.status_code == 200
-    # La ruta normaliza limit inválido (<1) a 3
     assert captured["limit"] == 3
-    # La ruta normaliza period y metric si vienen inválidos por defecto
     assert data["period"] == "week"
     assert data["metric"] == "downloads"
 
@@ -244,3 +240,49 @@ def test_missing_fields_in_dataset(monkeypatch):
 
     assert result[0]["title"] is None
     assert result[0]["url"] is None
+
+
+def test_trending_includes_community_when_present(monkeypatch):
+    service = DataSetService()
+
+    meta = _DummyMeta(title="WithCommunity", doi="10.1/com", authors=[_DummyAuthor("Carol")])
+    ds = _DummyDataset(5, meta, user_id=42)
+
+    monkeypatch.setattr(DataSetService, "get_trending_datasets", lambda self, **kw: [(ds, 9)])
+    monkeypatch.setattr(DataSetService, "get_componenteshub_doi", lambda self, dataset: "http://example/doi/10.1/com")
+
+    class FakeCommunity:
+        def __init__(self, name):
+            self.community = type("C", (), {"name": name})()
+
+    fake_query = type("Q", (), {
+        "filter_by": staticmethod(
+            lambda **kw: type("F", (), {"first": staticmethod(lambda: FakeCommunity("Comunidad X"))})()
+        )
+    })()
+
+    monkeypatch.setattr("app.modules.dataset.services.CommunityUser.query", fake_query, raising=False)
+
+    result = service.get_trending_datasets_for_api()
+    assert result[0]["community"] == "Comunidad X"
+
+
+def test_trending_community_none_when_absent(monkeypatch):
+    service = DataSetService()
+
+    meta = _DummyMeta(title="NoCommunity", doi="10.1/nc", authors=[_DummyAuthor("Eve")])
+    ds = _DummyDataset(6, meta, user_id=43)
+
+    monkeypatch.setattr(DataSetService, "get_trending_datasets", lambda self, **kw: [(ds, 1)])
+    monkeypatch.setattr(DataSetService, "get_componenteshub_doi", lambda self, dataset: "http://example/doi/10.1/nc")
+
+    fake_query_none = type("Q", (), {
+        "filter_by": staticmethod(
+            lambda **kw: type("F", (), {"first": staticmethod(lambda: None)})()
+        )
+    })()
+
+    monkeypatch.setattr("app.modules.dataset.services.CommunityUser.query", fake_query_none, raising=False)
+
+    result = service.get_trending_datasets_for_api()
+    assert result[0]["community"] is None
