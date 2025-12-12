@@ -18,7 +18,7 @@ from app.modules.dataset.repositories import (
     DSMetaDataRepository,
     DSViewRecordRepository,
 )
-from app.modules.featuremodel.repositories import FeatureModelRepository, FMMetaDataRepository
+from app.modules.compmodel.repositories import CompModelRepository, FMMetaDataRepository
 from app.modules.hubfile.repositories import (
     HubfileDownloadRecordRepository,
     HubfileRepository,
@@ -41,7 +41,7 @@ def calculate_checksum_and_size(file_path):
 class DataSetService(BaseService):
     def __init__(self):
         super().__init__(DataSetRepository())
-        self.feature_model_repository = FeatureModelRepository()
+        self.comp_model_repository = CompModelRepository()
         self.author_repository = AuthorRepository()
         self.dsmetadata_repository = DSMetaDataRepository()
         self.fmmetadata_repository = FMMetaDataRepository()
@@ -51,7 +51,7 @@ class DataSetService(BaseService):
         self.dsviewrecord_repostory = DSViewRecordRepository()
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
 
-    def move_feature_models(self, dataset: DataSet):
+    def move_comp_models(self, dataset: DataSet):
         current_user = AuthenticationService().get_authenticated_user()
         source_dir = current_user.temp_folder()
 
@@ -60,8 +60,8 @@ class DataSetService(BaseService):
 
         os.makedirs(dest_dir, exist_ok=True)
 
-        for feature_model in dataset.feature_models:
-            comp_filename = feature_model.fm_meta_data.comp_filename
+        for comp_model in dataset.comp_models:
+            comp_filename = comp_model.fm_meta_data.comp_filename
             shutil.move(os.path.join(source_dir, comp_filename), dest_dir)
 
     def get_synchronized(self, current_user_id: int) -> DataSet:
@@ -79,8 +79,8 @@ class DataSetService(BaseService):
     def count_synchronized_datasets(self):
         return self.repository.count_synchronized_datasets()
 
-    def count_feature_models(self):
-        return self.feature_model_service.count_feature_models()
+    def count_comp_models(self):
+        return self.comp_model_service.count_comp_models()
 
     def count_authors(self) -> int:
         return self.author_repository.count()
@@ -109,23 +109,23 @@ class DataSetService(BaseService):
 
             dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
 
-            for feature_model in form.feature_models:
-                comp_filename = feature_model.comp_filename.data
-                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
-                for author_data in feature_model.get_authors():
+            for comp_model in form.comp_models:
+                comp_filename = comp_model.comp_filename.data
+                fmmetadata = self.fmmetadata_repository.create(commit=False, **comp_model.get_fmmetadata())
+                for author_data in comp_model.get_authors():
                     author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
                     fmmetadata.authors.append(author)
 
-                fm = self.feature_model_repository.create(
+                fm = self.comp_model_repository.create(
                     commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
                 )
 
-                # associated files in feature model
+                # associated files in comp model
                 file_path = os.path.join(current_user.temp_folder(), comp_filename)
                 checksum, size = calculate_checksum_and_size(file_path)
 
                 file = self.hubfilerepository.create(
-                    commit=False, name=comp_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                    commit=False, name=comp_filename, checksum=checksum, size=size, comp_model_id=fm.id
                 )
                 fm.files.append(file)
             self.repository.session.commit()
