@@ -24,6 +24,7 @@ from app.modules.hubfile.repositories import (
     HubfileRepository,
     HubfileViewRecordRepository,
 )
+from app.modules.community.models import CommunityUser
 from core.services.BaseService import BaseService
 from sqlalchemy import func
 
@@ -177,10 +178,20 @@ class DataSetService(BaseService):
         result = []
         for dataset, count in trending:
             primary_author = dataset.ds_meta_data.authors[0].name if dataset.ds_meta_data.authors else "Unknown"
+            # determine community name if uploader belongs to any community
+            community_name = None
+            try:
+                cu = CommunityUser.query.filter_by(user_id=dataset.user_id).first()
+                if cu and getattr(cu, "community", None):
+                    community_name = cu.community.name
+            except Exception:
+                community_name = None
+
             result.append({
                 "id": dataset.id,
                 "title": dataset.ds_meta_data.title,
                 "author": primary_author,
+                "community": community_name,
                 "url": self.get_componenteshub_doi(dataset),
                 "count": count,
                 "metric": metric,
