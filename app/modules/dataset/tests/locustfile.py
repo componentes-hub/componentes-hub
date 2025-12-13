@@ -5,8 +5,7 @@ import time
 import random
 import uuid
 
-
-DATASET_IDS = [1, 2, 3, 10, 20]  # adjust to IDs available on the test host
+DATASET_IDS = [5,6,7,8]
 DOIS = ["10.1234/example1", "10.5678/example2", "10.9999/test-doi"]
 
 
@@ -25,7 +24,7 @@ class DatasetBehavior(TaskSet):
         except Exception:
             pass
 
-        # emulate returning user cookie (from provided text)
+        # Emulate returning user cookie
         self.existing_cookie = str(uuid.uuid4())
 
     @task(2)
@@ -103,6 +102,7 @@ class DatasetBehavior(TaskSet):
         except Exception:
             pass
 
+    # --- Downloads --- #
     @task(6)
     def download_dataset_anonymous(self):
         dataset_id = random.choice(DATASET_IDS)
@@ -114,6 +114,9 @@ class DatasetBehavior(TaskSet):
                     r.success()
         except Exception:
             pass
+
+        # Verify increment in counter
+        self.view_dataset_counter(dataset_id)
 
     @task(6)
     def download_dataset_with_cookie(self):
@@ -132,6 +135,10 @@ class DatasetBehavior(TaskSet):
         except Exception:
             pass
 
+        # Verify increment in counter
+        self.view_dataset_counter(dataset_id)
+
+    # --- DOI --- #
     @task(2)
     def view_doi(self):
         doi = random.choice(DOIS)
@@ -143,7 +150,6 @@ class DatasetBehavior(TaskSet):
                     r.success()
         except Exception:
             pass
-
 
 class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]
