@@ -72,13 +72,13 @@ class DataSet(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
-    feature_models = db.relationship("FeatureModel", backref="data_set", lazy=True, cascade="all, delete")
+    comp_models = db.relationship("CompModel", backref="data_set", lazy=True, cascade="all, delete")
 
     def name(self):
         return self.ds_meta_data.title
 
     def files(self):
-        return [file for fm in self.feature_models for file in fm.files]
+        return [file for fm in self.comp_models for file in fm.files]
 
     def delete(self):
         db.session.delete(self)
@@ -91,10 +91,10 @@ class DataSet(db.Model):
         return f"https://zenodo.org/record/{self.ds_meta_data.deposition_id}" if self.ds_meta_data.dataset_doi else None
 
     def get_files_count(self):
-        return sum(len(fm.files) for fm in self.feature_models)
+        return sum(len(fm.files) for fm in self.comp_models)
 
     def get_file_total_size(self):
-        return sum(file.size for fm in self.feature_models for file in fm.files)
+        return sum(file.size for fm in self.comp_models for file in fm.files)
 
     def get_file_total_size_for_human(self):
         from app.modules.dataset.services import SizeService
@@ -121,7 +121,7 @@ class DataSet(db.Model):
             "url": self.get_componenteshub_doi(),
             "download": f'{request.host_url.rstrip("/")}/dataset/download/{self.id}',
             "zenodo": self.get_zenodo_url(),
-            "files": [file.to_dict() for fm in self.feature_models for file in fm.files],
+            "files": [file.to_dict() for fm in self.comp_models for file in fm.files],
             "files_count": self.get_files_count(),
             "total_size_in_bytes": self.get_file_total_size(),
             "total_size_in_human_format": self.get_file_total_size_for_human(),

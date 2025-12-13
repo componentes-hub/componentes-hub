@@ -43,7 +43,7 @@
                             <div class="col-12">
                                 {% for author in dataset.ds_meta_data.authors %}
                                     <p class="p-0 m-0">
-                                        <a href="{{ url_for('profile.proyectos_autor', author_id=author.id) }}">{{ author.name }}</a>                                 
+                                        <a href="{{ url_for('profile.proyectos_autor', author_id=author.id) }}">{{ author.name }}</a>
                                         {% if author.affiliation %}
                                             ({{ author.affiliation }})
                                         {% endif %}
@@ -52,6 +52,11 @@
                                         {% endif %}
                                     </p>
                                 {% endfor %}
+
+                                {# Show dataset's community (uploader's community) if available #}
+                                {% if dataset_communities and dataset_communities.get(dataset.id) %}
+                                    <p class="p-0 m-0 text-muted small">Community: <strong>{{ dataset_communities.get(dataset.id) }}</strong></p>
+                                {% endif %}
                             </div>
 
 
@@ -136,7 +141,7 @@
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
-                                <i data-feather="file" class="align-middle mr-2 stats-color"></i>&nbsp;{{ feature_models_counter }} feature models
+                                <i data-feather="file" class="align-middle mr-2 stats-color"></i>&nbsp;{{ comp_models_counter }} comp models
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
@@ -144,7 +149,7 @@
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
-                                <i data-feather="eye" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_feature_model_views }} feature models viewed
+                                <i data-feather="eye" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_comp_model_views }} comp models viewed
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
@@ -152,7 +157,7 @@
                             </h4>
                     
                             <h4 class="h4" class="stats-color">
-                                <i data-feather="download" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_feature_model_downloads }} feature models downloaded
+                                <i data-feather="download" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_comp_model_downloads }} comp models downloaded
                             </h4>
                     
                         </h1>
@@ -166,6 +171,57 @@
 
                     <div class="card">
 
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2> <b>Top 3 trending datasets</b> </h2>
+                                <div>
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="Trending period">
+                                        <a href="{{ url_for('public.index', trending='week') }}" class="btn btn-outline-primary {% if selected_trending == 'week' %}active{% endif %}">This week</a>
+                                        <a href="{{ url_for('public.index', trending='month') }}" class="btn btn-outline-primary {% if selected_trending == 'month' %}active{% endif %}">This month</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="trending-datasets" style="margin-top: 15px;">
+                                {% set list = trending_week if selected_trending == 'week' else trending_month %}
+                                {% if list %}
+                                    {% for d in list %}
+                                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                                            
+                                            <div>
+                                                <a href="{{ d.url }}">{{ d.title }}</a>
+                                                <div class="text-muted small">
+                                                    by {{ d.author }}
+                                                    {% if d.community %}
+                                                        &middot; <span class="text-muted">{{ d.community }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="badge bg-primary rounded-pill px-3 py-2">
+                                                {{ d.count }} {{ 'downloads' if d.metric == 'downloads' else 'views' }}
+                                            </div>
+
+                                        </div>
+                                    {% endfor %}
+
+                                {% else %}
+                                    <p class="text-muted text-center">No trending datasets found.</p>
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-12">
+
+                    <div class="card">
+
                         <div class="card-body">
                     
 
@@ -173,7 +229,7 @@
                             <h2> <b>Related publication</b> </h2>
                             
                             David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides. 
-                            <i>ComponentesHub: A feature model data repository using Comp and open science principles</i>,
+                            <i>ComponentesHub: A comp model data repository using Comp and open science principles</i>,
                             Journal of Systems and Software,
                             2024,
                             112150,
@@ -212,7 +268,7 @@
 
                             <div class="card-body card-body-slim">
 
-                                What are you waiting for to upload your fantastic feature models in Comp format?
+                                What are you waiting for to upload your fantastic comp models in Comp format?
 
                                 <div class="row mt-2">
 
@@ -253,7 +309,7 @@
 
                         <div class="card-body card-body-slim">
 
-                            <strong>componenteshub.io</strong> is a repository of feature models in Comp format integrated with
+                            <strong>componenteshub.io</strong> is a repository of comp models in Comp format integrated with
                             Zenodo and FlamaPy developed by DiversoLab
 
                         </div>
@@ -287,5 +343,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('public.scripts') }}"></script>
+    {# No client-side script required for trending — rendered server-side #}
 {% endblock %}

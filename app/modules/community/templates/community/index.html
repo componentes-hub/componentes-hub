@@ -1,0 +1,108 @@
+{% extends "base_template.html" %}
+
+{% block title %}My Communities{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 8px; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+    <div>
+        <a href="{{ url_for('community.create_community') }}" class="btn btn-primary">Create Community</a>
+    </div>
+    <div>
+        <a href="{{ url_for('community.index') }}" class="btn btn-outline-secondary">My Communities</a>
+    </div>
+    <div>
+        <a href="{{ url_for('community.all_communities') }}" class="btn btn-outline-secondary">All Communities</a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+
+{% if not show_all %}
+
+    <h2>My Communities</h2>
+
+    <h4 class="mt-4">Communities where I am a member</h4>
+    {% if member_communities %}
+        {% for community in member_communities %}
+            <div class="col-12 col-md-8 col-lg-12"> 
+                <div class="card shadow-sm"> 
+                    <div class="card-header card-dark"> 
+                        <strong>
+                            <a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                                {{ community.name }}
+                            </a>
+                        </strong>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text h5"><i class="fa fa-user-circle"></i> {{ community.description }}</p>
+                        <form method="POST" action="{{ url_for('community.leave_community', community_id=community.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Leave Community</button>
+                        </form>
+                    </div>   
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>You don't belong to any community.</p>
+    {% endif %}
+
+    <h4 class="mt-4">Communities followed</h4>
+    {% if followed_communities %}
+        {% for community in followed_communities %}
+            <div class="col-12 col-md-8 col-lg-12"> 
+                <div class="card shadow-sm"> 
+                    <div class="card-header card-dark"> 
+                        <strong>
+                            <a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                                {{ community.name }}
+                            </a>
+                        </strong>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text h5"><i class="fa fa-user-circle"></i> {{ community.description }}</p>
+
+                        <form method="POST" action="{{ url_for('community.unfollow_community', community_id=community.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Unfollow</button>
+                        </form>
+
+                    </div>   
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>You don't follow any community.</p>
+    {% endif %}
+
+{% else %}
+
+    <h2>All Communities</h2>
+
+    {% for community in communities %}
+        <div class="col-12 col-md-8 col-lg-12"> 
+            <div class="card shadow-sm"> 
+                <div class="card-header card-dark"> 
+                    <strong>
+                        <a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                            {{ community.name }}
+                        </a>
+                    </strong>
+                </div>
+                <div class="card-body">
+                    <p class="card-text h5"><i class="fa fa-user-circle"></i> {{ community.description }}</p>
+                </div>   
+            </div>
+        </div>
+    {% endfor %}
+
+{% endif %}
+
+{% endblock %}

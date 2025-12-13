@@ -30,6 +30,47 @@
 
 </div>
 
+<h1 class="h3 mb-3">Authors followed</h1>
+
+<ul>
+    {% for author in followed_authors %}
+        <li>
+            <a href="{{ url_for('profile.proyectos_autor', author_id=author.id) }}">
+                {{ author.name }}
+            </a>
+        </li>
+    {% else %}
+        <p>You don't follow any author.</p>
+    {% endfor %}
+</ul>
+
+<h1 class="h3 mb-3">Users followed</h1><ul>
+    {% for user in following_users %}
+        <li>
+            <a href="{{ url_for('profile.proyectos_usuario', user_id=user.id) }}">
+                {{ user.profile.name }} {{ user.profile.surname }}
+            </a>
+        </li>
+    {% else %}
+        <p>You don't follow any user.</p>
+    {% endfor %}
+</ul>
+
+
+<h1 class="h3 mb-3">Communities followed</h1><ul>
+    {% if followed_communities %}
+        {% for community in followed_communities %}
+            <li>
+                <a href="{{ url_for('community.get_community', community_id=community.id) }}">
+                    {{ community.name }}
+                </a>
+            </li>
+        {% endfor %}
+    {% else %}
+        <p>You don't follow any community.</p>
+    {% endif %}
+</ul>
+
 <h1 class="h3 mb-3">User datasets</h1>
 
     {% if datasets %}
