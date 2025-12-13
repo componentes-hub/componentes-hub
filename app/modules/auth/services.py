@@ -114,7 +114,7 @@ class SessionDeviceService(BaseService):
         if not session_id:
             return
 
-        session = self.repository.get(session_id)
+        session = self.repository.get_by(id=session_id)
         if session:
             session.last_activity = datetime.now(timezone.utc)
             self.repository.session.commit()
