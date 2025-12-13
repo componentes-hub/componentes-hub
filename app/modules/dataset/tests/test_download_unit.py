@@ -64,3 +64,23 @@ def test_multiple_downloads_increment_correctly():
         service.register_download = orig
 
 
+def test_download_with_cookie_counts_as_download():
+    service = DataSetService()
+    dataset = _DummyDataset(3)
+    request = _DummyRequest(cookies={"download_cookie": "abc123"})
+
+    orig = getattr(service, "register_download", None)
+
+    def fake_register(ds, req):
+        ds.downloads.increment()
+
+    service.register_download = fake_register
+
+    service.register_download(dataset, request)
+
+    assert dataset.downloads.count == 1
+
+    if orig:
+        service.register_download = orig
+
+
