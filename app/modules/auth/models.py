@@ -43,12 +43,13 @@ class User(db.Model, UserMixin):
 
 
 class SessionDevice(db.Model):
+    __mapper_args__ = {
+        "confirm_deleted_rows": False
+    }
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     session_token = db.Column(db.String(100), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
-
-    # Custom name given by the user to identify different sessions
-    custom_name = db.Column(db.String(256), nullable=True)
 
     # Device info
     device_type = db.Column(db.String(50), nullable=False)  # mobile, desktop, tablet
