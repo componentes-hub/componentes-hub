@@ -1,8 +1,13 @@
-from locust import HttpUser, TaskSet, task
-
+from locust import HttpUser, TaskSet, task, between
 from core.environment.host import get_host_for_locust_testing
 from core.locust.common import get_csrf_token
 import time
+import random
+import uuid
+
+
+DATASET_IDS = [1, 2, 3, 10, 20]  # adjust to IDs available on the test host
+DOIS = ["10.1234/example1", "10.5678/example2", "10.9999/test-doi"]
 
 
 class DatasetBehavior(TaskSet):
@@ -19,6 +24,9 @@ class DatasetBehavior(TaskSet):
                     resp.success()
         except Exception:
             pass
+
+        # emulate returning user cookie (from provided text)
+        self.existing_cookie = str(uuid.uuid4())
 
     @task(2)
     def trending_various(self):
@@ -43,7 +51,10 @@ class DatasetBehavior(TaskSet):
 
         # invalid params
         try:
-            with self.client.get("/api/dataset/trending?period=year&limit=100&metric=stars", catch_response=True) as r:
+            with self.client.get(
+                "/api/dataset/trending?period=year&limit=100&metric=stars",
+                catch_response=True,
+            ) as r:
                 if r.status_code >= 500:
                     r.failure(f"Server error: {r.status_code}")
                 else:
@@ -81,9 +92,60 @@ class DatasetBehavior(TaskSet):
         except Exception:
             pass
 
+    @task(3)
+    def view_upload_page(self):
+        try:
+            with self.client.get("/dataset/upload", catch_response=True) as r:
+                if r.status_code >= 500:
+                    r.failure(f"Server error: {r.status_code}")
+                else:
+                    r.success()
+        except Exception:
+            pass
+
+    @task(6)
+    def download_dataset_anonymous(self):
+        dataset_id = random.choice(DATASET_IDS)
+        try:
+            with self.client.get(f"/dataset/download/{dataset_id}", catch_response=True) as r:
+                if r.status_code >= 500:
+                    r.failure(f"Server error: {r.status_code}")
+                else:
+                    r.success()
+        except Exception:
+            pass
+
+    @task(6)
+    def download_dataset_with_cookie(self):
+        dataset_id = random.choice(DATASET_IDS)
+        cookies = {"download_cookie": self.existing_cookie}
+        try:
+            with self.client.get(
+                f"/dataset/download/{dataset_id}",
+                cookies=cookies,
+                catch_response=True,
+            ) as r:
+                if r.status_code >= 500:
+                    r.failure(f"Server error: {r.status_code}")
+                else:
+                    r.success()
+        except Exception:
+            pass
+
+    @task(2)
+    def view_doi(self):
+        doi = random.choice(DOIS)
+        try:
+            with self.client.get(f"/doi/{doi}/", catch_response=True) as r:
+                if r.status_code >= 500:
+                    r.failure(f"Server error: {r.status_code}")
+                else:
+                    r.success()
+        except Exception:
+            pass
+
 
 class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]
-    min_wait = 5000
-    max_wait = 9000
+    wait_time = between(5, 9)
     host = get_host_for_locust_testing()
