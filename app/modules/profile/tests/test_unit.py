@@ -121,14 +121,12 @@ def test_user_projects_page_not_found(test_client):
     """Usuario inexistente devuelve 404"""
     response = test_client.get("/user/999999/projects")
     assert response.status_code == 404
-    return "Usuario no encontrado", 404
 
 
 def test_author_projects_page_not_found(test_client):
     """Autor inexistente devuelve 404"""
     response = test_client.get("/author/999999/projects")
     assert response.status_code == 404
-    return "Autor no encontrado", 404
 
 
 def test_user_profile_repository_create(user):
