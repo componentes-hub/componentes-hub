@@ -2,7 +2,7 @@ from flask import jsonify, make_response, render_template, redirect, url_for, fl
 from flask_login import login_required, current_user
 from app.modules.community import community_bp
 from app.modules.community.services import CommunityService, CommunityUserService
-from app.modules.community.forms import CreateCommunityForm, FindCommunityForm
+from app.modules.community.forms import CreateCommunityForm
 from app.modules.profile.models import UserProfile
 from app.modules.dataset.models import DataSet
 from app.modules.community.models import Community, CommunityFollower
@@ -30,7 +30,6 @@ def index():
         followed_communities=followed_communities,
         show_all=False
     )
-
 
 
 @community_bp.route(base_url + "/all", methods=['GET'])
@@ -113,6 +112,7 @@ def get_community(community_id):
         current_user_name=current_user_name
     )
 
+
 @community_bp.route(base_url + "/create", methods=["GET", "POST"])
 @login_required
 def create_community():
@@ -125,19 +125,19 @@ def create_community():
         if community:
             flash("El código ya está en uso", "error")
             return redirect(url_for('community.create_community'))
-        community = community_service.create(name=name, description=description,
-                                             code=code)
+        community = community_service.create(name=name, description=description, code=code)
         community = community_service.get_community_by_code(code)
         community_user_service.create(user_id=current_user.id, community_id=community.id, is_admin=True)
         return redirect(url_for('community.get_community', community_id=community.id))
     return render_template('community/create.html', createForm=CreateCommunityForm())
+
 
 @community_bp.route(base_url + "/update/<int:community_id>", methods=["GET", "POST"])
 @login_required
 def update_community(community_id):
     form = CreateCommunityForm()
     community = community_service.get_by_id(community_id)
-    community_user = community_user_service.get_by_user_id_and_community(user_id=current_user.id,
+    community_user = community_user_service.get_by_user_id_and_community(user_id=current_user.id, 
                                                                          community_id=community_id)
     if not community_user or not community_user.is_admin:
         flash("No tienes permisos para eliminar esta comunidad", "error")
@@ -171,7 +171,7 @@ def delete_community(community_id):
     if not community:
         return flash("Comunidad no encontrada", "error")
 
-    community_user = community_user_service.get_by_user_id_and_community(user_id=current_user.id,
+    community_user = community_user_service.get_by_user_id_and_community(user_id=current_user.id, 
                                                                          community_id=community_id)
     if not community_user or not community_user.is_admin:
         flash("No tienes permisos para eliminar esta comunidad", "error")
@@ -182,6 +182,7 @@ def delete_community(community_id):
         community_user_service.delete(community_user.id)
     community_service.delete(community_id)
     return redirect(url_for('community.index', community_id=community_id))
+
 
 @community_bp.route(base_url + "/leave/<int:community_id>", methods=["POST"])
 @login_required
@@ -200,6 +201,7 @@ def leave_community(community_id):
     flash("Has abandonado la comunidad exitosamente", "success")
     return index()
 
+
 @community_bp.route(base_url + "/follow/<int:community_id>", methods=["POST"])
 @login_required
 def follow_community(community_id):
@@ -215,6 +217,7 @@ def follow_community(community_id):
 
     flash("You now follow this community", "success")
     return redirect(url_for('community.get_community', community_id=community_id))
+
 
 @community_bp.route(base_url + "/unfollow/<int:community_id>", methods=["POST"])
 @login_required
