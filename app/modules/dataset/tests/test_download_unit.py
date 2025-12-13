@@ -42,3 +42,25 @@ def test_register_download_increments_counter():
         service.register_download = orig
 
 
+def test_multiple_downloads_increment_correctly():
+    service = DataSetService()
+    dataset = _DummyDataset(2)
+    request = _DummyRequest()
+
+    orig = getattr(service, "register_download", None)
+
+    def fake_register(ds, req):
+        ds.downloads.increment()
+
+    service.register_download = fake_register
+
+    service.register_download(dataset, request)
+    service.register_download(dataset, request)
+    service.register_download(dataset, request)
+
+    assert dataset.downloads.count == 3
+
+    if orig:
+        service.register_download = orig
+
+
