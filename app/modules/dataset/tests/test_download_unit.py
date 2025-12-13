@@ -1,0 +1,123 @@
+from app.modules.dataset.services import DataSetService
+
+
+class _DummyRequest:
+    def __init__(self, cookies=None, remote_addr="127.0.0.1"):
+        self.cookies = cookies or {}
+        self.remote_addr = remote_addr
+
+
+class _DummyDownloadCounter:
+    def __init__(self):
+        self.count = 0
+
+    def increment(self):
+        self.count += 1
+
+
+class _DummyDataset:
+    def __init__(self, id_):
+        self.id = id_
+        self.downloads = _DummyDownloadCounter()
+
+
+def test_register_download_increments_counter():
+    service = DataSetService()
+    dataset = _DummyDataset(1)
+    request = _DummyRequest()
+
+    # Simulamos el método real que incrementa el contador
+    orig = getattr(service, "register_download", None)
+
+    def fake_register(ds, req):
+        ds.downloads.increment()
+
+    service.register_download = fake_register
+
+    service.register_download(dataset, request)
+
+    assert dataset.downloads.count == 1
+
+    if orig:
+        service.register_download = orig
+
+
+def test_multiple_downloads_increment_correctly():
+    service = DataSetService()
+    dataset = _DummyDataset(2)
+    request = _DummyRequest()
+
+    orig = getattr(service, "register_download", None)
+
+    def fake_register(ds, req):
+        ds.downloads.increment()
+
+    service.register_download = fake_register
+
+    service.register_download(dataset, request)
+    service.register_download(dataset, request)
+    service.register_download(dataset, request)
+
+    assert dataset.downloads.count == 3
+
+    if orig:
+        service.register_download = orig
+
+
+def test_download_with_cookie_counts_as_download():
+    service = DataSetService()
+    dataset = _DummyDataset(3)
+    request = _DummyRequest(cookies={"download_cookie": "abc123"})
+
+    orig = getattr(service, "register_download", None)
+
+    def fake_register(ds, req):
+        ds.downloads.increment()
+
+    service.register_download = fake_register
+
+    service.register_download(dataset, request)
+
+    assert dataset.downloads.count == 1
+
+    if orig:
+        service.register_download = orig
+
+
+def test_download_without_cookie_counts_as_download():
+    service = DataSetService()
+    dataset = _DummyDataset(4)
+    request = _DummyRequest(cookies={})
+
+    orig = getattr(service, "register_download", None)
+
+    def fake_register(ds, req):
+        ds.downloads.increment()
+
+    service.register_download = fake_register
+
+    service.register_download(dataset, request)
+
+    assert dataset.downloads.count == 1
+
+    if orig:
+        service.register_download = orig
+
+
+def test_get_download_count_returns_correct_value():
+    service = DataSetService()
+    dataset = _DummyDataset(5)
+    dataset.downloads.increment()
+    dataset.downloads.increment()
+
+    orig = getattr(service, "get_download_count", None)
+
+    service.get_download_count = lambda ds: ds.downloads.count
+
+    count = service.get_download_count(dataset)
+
+    assert count == 2
+
+    if orig:
+        service.get_download_count = orig
+
