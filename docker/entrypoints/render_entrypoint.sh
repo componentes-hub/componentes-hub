@@ -58,4 +58,4 @@ fi
 
 # Start the application using Gunicorn, binding it to port 80
 # Set the logging level to info and the timeout to 3600 seconds
-exec gunicorn --bind 0.0.0.0:5000 app:app --workers 1 --threads 2 --timeout 3600 --log-level info
+exec gunicorn --bind 0.0.0.0:5000 app:app --log-level info --timeout 1800 --threads 2 -w 1 --worker-class gthread
