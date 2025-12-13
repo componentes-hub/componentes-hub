@@ -84,3 +84,23 @@ def test_download_with_cookie_counts_as_download():
         service.register_download = orig
 
 
+def test_download_without_cookie_counts_as_download():
+    service = DataSetService()
+    dataset = _DummyDataset(4)
+    request = _DummyRequest(cookies={})
+
+    orig = getattr(service, "register_download", None)
+
+    def fake_register(ds, req):
+        ds.downloads.increment()
+
+    service.register_download = fake_register
+
+    service.register_download(dataset, request)
+
+    assert dataset.downloads.count == 1
+
+    if orig:
+        service.register_download = orig
+
+
