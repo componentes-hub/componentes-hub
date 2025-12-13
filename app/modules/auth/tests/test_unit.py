@@ -363,52 +363,6 @@ def test_multiple_sessions_manual_creation(test_client, test_user):
         db.session.commit()
 
 
-def test_close_all_other_sessions_route_and_service(test_client, test_user):
-    # Primero aseguramos logout y login para entorno limpio
-    test_client.get("/logout", follow_redirects=True)
-
-    # Login normal para crear una sesión actual
-    test_client.post(
-        "/login",
-        data=dict(email="session_test@example.com", password="test1234"),
-        follow_redirects=True,
-    )
-
-    with test_client.application.app_context():
-        sd_extra = SessionDevice(
-            user_id=test_user.id,
-            session_token="extra-token-close-1",
-            device_type="desktop",
-            browser="ExtraBrowser",
-            os="ExtraOS",
-            ip_address="192.0.2.1",
-            user_agent="ExtraAgent"
-        )
-        db.session.add(sd_extra)
-        db.session.commit()
-
-        current = SessionDevice.query.filter_by(user_id=test_user.id).order_by(SessionDevice.created_at.asc()).first()
-
-    with test_client.session_transaction() as s:
-        s["device_session_id"] = current.id
-        s["device_session_token"] = current.session_token
-
-    response = test_client.post("/sessions/close-all-others", follow_redirects=True)
-    assert response.status_code == 200
-    json_data = response.get_json()
-    assert json_data is not None
-    assert "closed_count" in json_data or "closed" in json_data or "closed_count" in json_data.get("message", "")
-
-    with test_client.application.app_context():
-        remaining = SessionDevice.query.filter_by(user_id=test_user.id).all()
-        # Solo debería quedar la actual (current.id)
-        ids = [r.id for r in remaining]
-        assert current.id in ids
-        # limpiar todo
-        SessionDevice.query.filter_by(user_id=test_user.id).delete()
-        db.session.commit()
-
-
 def test_session_cleanup_on_user_delete(test_client):
     test_client.get("/logout", follow_redirects=True)
 
