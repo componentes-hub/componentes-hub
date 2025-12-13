@@ -104,3 +104,20 @@ def test_download_without_cookie_counts_as_download():
         service.register_download = orig
 
 
+def test_get_download_count_returns_correct_value():
+    service = DataSetService()
+    dataset = _DummyDataset(5)
+    dataset.downloads.increment()
+    dataset.downloads.increment()
+
+    orig = getattr(service, "get_download_count", None)
+
+    service.get_download_count = lambda ds: ds.downloads.count
+
+    count = service.get_download_count(dataset)
+
+    assert count == 2
+
+    if orig:
+        service.get_download_count = orig
+
