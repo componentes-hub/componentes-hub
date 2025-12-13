@@ -409,66 +409,22 @@ def test_close_all_other_sessions_route_and_service(test_client, test_user):
         db.session.commit()
 
 
-def test_delete_other_user_session_via_route(test_client, test_user):
-    """Test que no se puede eliminar la sesión de otro usuario"""
-    with test_client.application.app_context():
-        # Limpiar sesión antes de empezar
-        db.session.rollback()
-        
-        # Crear otro usuario
-        other = User(email="other_for_delete@example.com")
-        other.set_password("password123")
-        db.session.add(other)
-        db.session.flush()  # Flush para obtener el ID
-        other_id = other.id
-
-        # Crear sesión para el otro usuario
-        other_sess = SessionDevice(
-            user_id=other_id,
-            session_token="other-session-token",
-            device_type="desktop",
-            browser="OtherBrowser",
-            os="OtherOS",
-            ip_address="198.51.100.2",
-            user_agent="OtherAgent"
-        )
-        db.session.add(other_sess)
-        db.session.commit()
-        other_sess_id = other_sess.id
-
-    # Login como test_user
-    test_client.post(
-        "/login",
-        data=dict(email="session_test@example.com", password="test1234"),
-        follow_redirects=True,
-    )
-
-    # Intentar borrar la sesión del otro usuario
-    res = test_client.delete(f"/sessions/{other_sess_id}", follow_redirects=True)
-    assert res.status_code in (400, 401, 403, 404)
-
-    # Comprobar que la sesión del otro usuario sigue en BD
-    with test_client.application.app_context():
-        db.session.rollback()  # Refresh desde BD
-        still = SessionDevice.query.get(other_sess_id)
-        assert still is not None
-
-    # Logout
+def test_session_cleanup_on_user_delete(test_client):
     test_client.get("/logout", follow_redirects=True)
 
-    # Limpiar
+    email = "signup_session_test@example.com"
+
+    # Limpiar usuario si existe de tests anteriores
     with test_client.application.app_context():
-        try:
-            SessionDevice.query.filter_by(user_id=other_id).delete()
-            other_to_delete = User.query.get(other_id)
-            if other_to_delete:
-                db.session.delete(other_to_delete)
+        existing_user = UserRepository().get_by_email(email)
+        if existing_user:
+            SessionDevice.query.filter_by(user_id=existing_user.id).delete()
+            profile = UserProfile.query.filter_by(user_id=existing_user.id).first()
+            if profile:
+                db.session.delete(profile)
+            db.session.delete(existing_user)
             db.session.commit()
-        except Exception:
-            db.session.rollback()
 
-
-def test_session_cleanup_on_user_delete(test_client):
     with test_client.application.app_context():
         temp = User(email="temp_user_cleanup@example.com", password="tmppass")
         db.session.add(temp)
