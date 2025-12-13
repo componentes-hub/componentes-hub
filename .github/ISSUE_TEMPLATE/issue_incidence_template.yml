@@ -41,8 +41,8 @@ body:
   - type: dropdown
     id: difficulty
     attributes:
-      label: "Prioridad"
-      description: "Selecciona la prioridad de la tarea."
+      label: "Dificultada"
+      description: "Selecciona la dificultad de la tarea."
       options:
         - Difícil (hard)
         - Media (medium)
