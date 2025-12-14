@@ -149,12 +149,14 @@
                         </span>
                     </button>
 
-                    <a href="{{ url_for('dataset.dataset_stats', dataset_id=dataset.id) }}" 
-                        class="btn doi_button btn-sm" 
-                        style="font-size: 0.85rem; padding: 0.25rem 0.5rem; text-decoration: none;">
-                            <i data-feather="bar-chart-2" class="center-button-icon" style="width: 16px; height:16px;"></i>
-                            <b>Stats</b>
-                    </a>
+                    <button
+                        class="btn doi_button btn-sm"
+                        style="font-size: 0.85rem; padding: 0.25rem 0.5rem;"
+                        onclick="openStats('{{ dataset.id }}')">
+                                <i data-feather="bar-chart-2" class="center-button-icon" style="width: 16px; height:16px;"></i>
+                                <b>Stats</b>
+                    </button>
+
                 </div>
                                 
                 <div id="dataset_doi_componenteshub" style="display: none">
@@ -425,5 +427,40 @@
         });
     }
 </script>
+
+<script>
+function openStats(datasetId) {
+    fetch(`/dataset/${datasetId}/stats`, {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+    .then(response => {
+        if (response.status === 403) {
+            showNoAccessMessage();
+        } else if (response.status === 401) {
+            showLoginRequiredMessage();
+        } else if (response.ok) {
+            // Usuario autorizado → navegamos
+            window.location.href = `/dataset/${datasetId}/stats`;
+        } else {
+            alert("Unexpected error accessing dataset statistics.");
+        }
+    })
+    .catch(() => {
+        alert("Network error while accessing statistics.");
+    });
+}
+
+function showNoAccessMessage() {
+    alert("You do not have access to the statistics of this dataset.");
+}
+
+function showLoginRequiredMessage() {
+    alert("You must be logged in to view dataset statistics.");
+}
+</script>
+
 
 {% endblock %}
