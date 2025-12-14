@@ -19,7 +19,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from app.modules.dataset.models import DataSet
+from app.modules.dataset.models import DataSet, DSViewRecord  # added DSViewRecord
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.forms import DataSetForm
 from app.modules.dataset.models import DSDownloadRecord
@@ -294,23 +294,39 @@ def get_trending_datasets_api():
 @dataset_bp.route("/dataset/<int:dataset_id>/stats", methods=["GET"])
 @login_required
 def dataset_stats(dataset_id):
-    dataset = DataSet.query.get(dataset_id)
-    if not dataset:
-        abort(404)
-
-    # Solo el dueño del dataset puede ver sus stats
+    dataset = DataSet.query.get_or_404(dataset_id)
+    
     if dataset.user_id != current_user.id:
         abort(403)
+
+    try:
+        downloads_count = DSDownloadRecord.query.filter_by(dataset_id=dataset.id).count()
+    except Exception:
+        downloads_count = 0
+
+    try:
+        views_count = DSViewRecord.query.filter_by(dataset_id=dataset.id).count()
+    except Exception:
+        views_count = 0
+
+    try:
+        files_count = dataset.get_files_count()
+    except Exception:
+        files_count = 0
+
+    try:
+        total_size_human = dataset.get_file_total_size_for_human()
+    except Exception:
+        total_size_human = "0 bytes"
 
     stats = {
         "id": dataset.id,
         "title": dataset.ds_meta_data.title,
-        "doi": dataset.ds_meta_data.dataset_doi,
-        "downloads": dataset.get_download_count(),
-        "views": dataset.ds_view_record.count() if hasattr(dataset, 'ds_view_record') else 0,
-        "files_count": dataset.get_files_count(),
-        "total_size_in_bytes": dataset.get_file_total_size(),
-        "total_size_in_human_format": dataset.get_file_total_size_for_human(),
+        "doi": getattr(dataset.ds_meta_data, "dataset_doi", None),
+        "downloads": downloads_count,
+        "views": views_count,
+        "files_count": files_count,
+        "total_size_in_human_format": total_size_human,
     }
 
     return render_template("dataset/dataset_stats.html", dataset=dataset, stats=stats)
