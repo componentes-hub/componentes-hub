@@ -38,7 +38,12 @@ def create_app(config_name="development"):
     @app.before_request
     def validate_session():
         from flask_login import current_user, logout_user
-        from flask import session, redirect, url_for
+        from flask import session, redirect, url_for, request
+
+        # Skip validation for 2FA endpoints and auth-related endpoints
+        excluded_routes = ['auth.two_factor_verify', 'auth.two_factor_setup', 'auth.two_factor_qrcode', 'auth.two_factor_confirm', 'auth.logout', 'auth.login', 'auth.show_signup_form']
+        if request.endpoint in excluded_routes:
+            return
 
         if current_user.is_authenticated:
             from app.modules.auth.services import SessionDeviceService
@@ -46,11 +51,14 @@ def create_app(config_name="development"):
             session_device_service = SessionDeviceService()
             session_id = session.get('device_session_id')
 
-            if session_id:
-                current_session = session_device_service.get_current_session(current_user.id)
-                if not current_session:
-                    logout_user()
-                    return redirect(url_for('auth.login'))
+            # If no session ID, allow the request (user just logged in)
+            if not session_id:
+                return
+
+            current_session = session_device_service.get_current_session(current_user.id)
+            if not current_session:
+                logout_user()
+                return redirect(url_for('auth.login'))
 
     # Register login manager
     from flask_login import LoginManager

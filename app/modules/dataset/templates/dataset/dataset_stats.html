@@ -1,0 +1,162 @@
+{% extends "base_template.html" %}
+
+{% block title %}Dataset Stats{% endblock %}
+
+{% block head_extra %}
+<style>
+    .card-styled {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+    .card-styled:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+    }
+    .stat-label {
+        display: block;
+        font-weight: bold;
+        color: #6c757d;
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #343a40;
+    }
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+        color: #007bff;
+    }
+
+    .back-btn {
+        border-radius: 5px;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .info-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-12 d-flex align-items-center">
+        <h1 style="font-weight: bold; font-size: 2rem; margin: 0; display: inline-block;">
+            {{ dataset.ds_meta_data.title }}
+        </h1>
+        <a href="{{ url_for('dataset.subdomain_index', doi=dataset.ds_meta_data.dataset_doi) }}"
+            class="btn btn-primary btn-sm back-btn ms-2"
+            style="font-size: 0.9rem;">
+            <i data-feather="arrow-left"></i>
+            Back to Dataset
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card card-styled">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Dataset Stats</h4>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 stat-card">
+                        <i data-feather="download" class="stat-icon"></i>
+                        <span class="stat-label">Downloads</span>
+                        <span class="stat-value">{{ stats.downloads }}</span>
+                    </div>
+                    <div class="col-md-3 col-sm-6 stat-card">
+                        <i data-feather="eye" class="stat-icon"></i>
+                        <span class="stat-label">Views</span>
+                        <span class="stat-value">{{ stats.views }}</span>
+                    </div>
+                    <div class="col-md-3 col-sm-6 stat-card">
+                        <i data-feather="file" class="stat-icon"></i>
+                        <span class="stat-label">Number of Files</span>
+                        <span class="stat-value">{{ stats.files_count }}</span>
+                    </div>
+                    <div class="col-md-3 col-sm-6 stat-card">
+                        <i data-feather="hard-drive" class="stat-icon"></i>
+                        <span class="stat-label">Total Size</span>
+                        <span class="stat-value">{{ stats.total_size_in_human_format }}</span>
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card card-styled">
+            <div class="card-body">
+                <h4>Dataset Info</h4>
+                <div class="row info-row">
+                    <div class="col-md-3 info-label">DOI</div>
+                    <div class="col-md-9">{{ dataset.ds_meta_data.dataset_doi }}</div>
+                </div>
+                <div class="row info-row">
+                    <div class="col-md-3 info-label">Publication Type</div>
+                    <div class="col-md-9">{{ dataset.get_cleaned_publication_type() }}</div>
+                </div>
+                <div class="row info-row">
+                    <div class="col-md-3 info-label">Created At</div>
+                    <div class="col-md-9">{{ dataset.created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                </div>
+                <div class="row info-row">
+                    <div class="col-md-3 info-label">Description</div>
+                    <div class="col-md-9">{{ dataset.ds_meta_data.description }}</div>
+                </div>
+                <div class="row info-row">
+                    <div class="col-md-3 info-label">Authors</div>
+                    <div class="col-md-9">
+                        {% for author in dataset.ds_meta_data.authors %}
+                            <p class="p-0 m-0">
+                                <a href="{{ url_for('profile.proyectos_autor', author_id=author.id) }}">{{ author.name }}</a>
+                                {% if author.affiliation %} ({{ author.affiliation }}) {% endif %}
+                                {% if author.orcid %} ({{ author.orcid }}) {% endif %}
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row info-row">
+                    <div class="col-md-3 info-label">Tags</div>
+                    <div class="col-md-9">
+                        {% for tag in dataset.ds_meta_data.tags.split(',') %}
+                            <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        feather.replace();
+    });
+</script>
+
+{% endblock %}

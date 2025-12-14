@@ -96,6 +96,7 @@ class SessionDeviceService(BaseService):
         flask_session['device_session_id'] = session_device.id
         flask_session['device_session_token'] = session_device.session_token
         flask_session.permanent = True
+        flask_session.modified = True 
 
         return session_device
 

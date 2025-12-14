@@ -41,7 +41,7 @@ body:
   - type: dropdown
     id: difficulty
     attributes:
-      label: "Dificultada"
+      label: "Dificultad"
       description: "Selecciona la dificultad de la tarea."
       options:
         - Difícil (hard)
