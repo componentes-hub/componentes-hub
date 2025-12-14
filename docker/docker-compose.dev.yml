@@ -2,7 +2,7 @@ services:
   web:
     container_name: web_app_container
     env_file:
-      - ../.env
+      - ../.env.docker.dev
     expose:
       - "5000"
     depends_on:
@@ -15,22 +15,26 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: [ "sh", "-c", "sh /app/docker/entrypoints/development_entrypoint.sh" ]
     networks:
-      - uvlhub_network
+      - componenteshub_network
 
   db:
     container_name: mariadb_container
-    env_file:
-      - ../.env
-    build:
-      context: ../
-      dockerfile: docker/images/Dockerfile.mariadb
+    image: mariadb:12.0.2
     restart: always
     ports:
       - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: componenteshubdb_root_password
+      MARIADB_DATABASE: componenteshubdb
+      MARIADB_USER: componenteshubdb_user
+      MARIADB_PASSWORD: componenteshubdb_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --bind-address=0.0.0.0
     volumes:
       - db_data:/var/lib/mysql
     networks:
-      - uvlhub_network
+      - componenteshub_network
 
   nginx:
     container_name: nginx_web_server_container
@@ -43,10 +47,11 @@ services:
     depends_on:
       - web
     networks:
-      - uvlhub_network
+      - componenteshub_network
 
 volumes:
   db_data:
 
 networks:
-  uvlhub_network:
+  componenteshub_network:
+    driver: bridge  
