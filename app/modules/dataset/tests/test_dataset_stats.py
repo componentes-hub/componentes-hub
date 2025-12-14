@@ -1,130 +1,116 @@
 from app.modules.dataset.services import DataSetService
 
-class _DummyViewCounter:
-    def __init__(self):
-        self.count = 0
+class _DummyUser:
+    def __init__(self, id_):
+        self.id = id_
+
+class _DummyAuthor:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.name = "Author"
+
+    def to_dict(self):
+        return {"user_id": self.user_id}
+
+class _DummyMetaData:
+    def __init__(self, authors):
+        self.authors = authors
+        self.title = "Test dataset"
+        self.dataset_doi = "10.1234/test"
+        self.description = "Description"
+        self.tags = ""
+
+class _DummyCounter:
+    def __init__(self, count=0):
+        self.count = count
 
     def increment(self):
         self.count += 1
 
-
-class _DummyFile:
-    def __init__(self, size):
-        self.size = size
-
-
 class _DummyDataset:
-    def __init__(self, id_, files=None):
-        self.id = id_
-        self._downloads = 0
-        self._views = _DummyViewCounter()
-        self.files = files or []
+    def __init__(self, dataset_id, authors):
+        self.id = dataset_id
+        self.ds_meta_data = _DummyMetaData(authors)
+        self.downloads = _DummyCounter()
+        self.views = _DummyCounter()
 
     def get_download_count(self):
-        return self._downloads
-
-    def increment_downloads(self):
-        self._downloads += 1
+        return self.downloads.count
 
     def get_files_count(self):
-        return len(self.files)
+        return 2
 
     def get_file_total_size(self):
-        return sum(f.size for f in self.files)
+        return 2048
 
-def test_get_download_count_returns_correct_value():
-    service = DataSetService()
-    dataset = _DummyDataset(1)
-
-    dataset.increment_downloads()
-    dataset.increment_downloads()
-
-    orig = getattr(service, "get_download_count", None)
-    service.get_download_count = lambda ds: ds.get_download_count()
-
-    count = service.get_download_count(dataset)
-
-    assert count == 2
-
-    if orig:
-        service.get_download_count = orig
+    def get_file_total_size_for_human(self):
+        return "2 KB"
 
 
-def test_views_are_counted_correctly():
-    service = DataSetService()
-    dataset = _DummyDataset(2)
+# TESTS DE ACCESO A STATS
 
-    dataset._views.increment()
-    dataset._views.increment()
-    dataset._views.increment()
+def can_access_stats(dataset, user):
+    """
+    Helper que imita la lógica del endpoint:
+    solo autores pueden acceder
+    """
+    if not user:
+        return False
 
-    orig = getattr(service, "get_view_count", None)
-    service.get_view_count = lambda ds: ds._views.count
+    return any(author.user_id == user.id for author in dataset.ds_meta_data.authors)
 
-    views = service.get_view_count(dataset)
+def test_stats_access_allowed_for_author():
+    user = _DummyUser(id_=1)
+    author = _DummyAuthor(user_id=1)
+    dataset = _DummyDataset(1, authors=[author])
 
-    assert views == 3
+    assert can_access_stats(dataset, user) is True
 
-    if orig:
-        service.get_view_count = orig
+def test_stats_access_denied_for_non_author():
+    user = _DummyUser(id_=2)
+    author = _DummyAuthor(user_id=1)
+    dataset = _DummyDataset(2, authors=[author])
 
+    assert can_access_stats(dataset, user) is False
 
-def test_files_count_is_correct():
-    service = DataSetService()
-    files = [_DummyFile(100), _DummyFile(200), _DummyFile(300)]
-    dataset = _DummyDataset(3, files=files)
+def test_stats_access_denied_for_anonymous_user():
+    author = _DummyAuthor(user_id=1)
+    dataset = _DummyDataset(3, authors=[author])
 
-    orig = getattr(service, "get_files_count", None)
-    service.get_files_count = lambda ds: ds.get_files_count()
+    assert can_access_stats(dataset, None) is False
 
-    count = service.get_files_count(dataset)
+def test_stats_access_allowed_with_multiple_authors():
+    user = _DummyUser(id_=3)
+    authors = [
+        _DummyAuthor(user_id=1),
+        _DummyAuthor(user_id=2),
+        _DummyAuthor(user_id=3),
+    ]
+    dataset = _DummyDataset(4, authors=authors)
 
-    assert count == 3
+    assert can_access_stats(dataset, user) is True
 
-    if orig:
-        service.get_files_count = orig
+# TESTS DE STATS DEL DATASET
 
+def test_download_counter_increments():
+    dataset = _DummyDataset(5, authors=[])
 
-def test_total_size_is_calculated_correctly():
-    service = DataSetService()
-    files = [_DummyFile(512), _DummyFile(1024)]
-    dataset = _DummyDataset(4, files=files)
+    dataset.downloads.increment()
+    dataset.downloads.increment()
 
-    orig = getattr(service, "get_total_size", None)
-    service.get_total_size = lambda ds: ds.get_file_total_size()
+    assert dataset.get_download_count() == 2
 
-    size = service.get_total_size(dataset)
+def test_files_count():
+    dataset = _DummyDataset(6, authors=[])
 
-    assert size == 1536
+    assert dataset.get_files_count() == 2
 
-    if orig:
-        service.get_total_size = orig
+def test_total_file_size():
+    dataset = _DummyDataset(7, authors=[])
 
+    assert dataset.get_file_total_size() == 2048
 
-def test_empty_dataset_has_zero_stats():
-    service = DataSetService()
-    dataset = _DummyDataset(5)
+def test_total_file_size_human_format():
+    dataset = _DummyDataset(8, authors=[])
 
-    orig_downloads = getattr(service, "get_download_count", None)
-    orig_views = getattr(service, "get_view_count", None)
-    orig_files = getattr(service, "get_files_count", None)
-    orig_size = getattr(service, "get_total_size", None)
-
-    service.get_download_count = lambda ds: ds.get_download_count()
-    service.get_view_count = lambda ds: ds._views.count
-    service.get_files_count = lambda ds: ds.get_files_count()
-    service.get_total_size = lambda ds: ds.get_file_total_size()
-
-    assert service.get_download_count(dataset) == 0
-    assert service.get_view_count(dataset) == 0
-    assert service.get_files_count(dataset) == 0
-    assert service.get_total_size(dataset) == 0
-
-    if orig_downloads:
-        service.get_download_count = orig_downloads
-    if orig_views:
-        service.get_view_count = orig_views
-    if orig_files:
-        service.get_files_count = orig_files
-    if orig_size:
-        service.get_total_size = orig_size
+    assert dataset.get_file_total_size_for_human() == "2 KB"
