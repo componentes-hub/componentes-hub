@@ -50,6 +50,7 @@ def login():
         if user and user.check_password(form.password.data):
             if user.two_factor_enabled and user.totp_secret:
                 session["pre_2fa_user_id"] = user.id
+                session["pre_2fa_remember_me"] = form.remember_me.data
                 return redirect(url_for("auth.two_factor_verify"))
             login_user(user, remember=form.remember_me.data)
             session_device_service.create_session(user.id, request)
@@ -103,13 +104,18 @@ def two_factor_verify():
     if not user_id:
         return redirect(url_for("auth.login"))
     user = authentication_service.repository.model.query.get(user_id)
+    if not user:
+        return redirect(url_for("auth.login"))
     if request.method == "POST" and form.validate_on_submit():
         import pyotp
         token = form.token.data.strip()
         totp = pyotp.TOTP(user.totp_secret)
-        if totp.verify(token):
-            login_user(user)
+        if totp.verify(token, valid_window=1):
+            remember_me = session.get("pre_2fa_remember_me", False)
+            login_user(user, remember=remember_me)
+            session_device_service.create_session(user.id, request)
             session.pop("pre_2fa_user_id", None)
+            session.pop("pre_2fa_remember_me", None)
             return redirect(url_for("public.index"))
         error = "Código de autenticación inválido."
     return render_template("auth/2fa_verify.html", form=form, error=error)
@@ -126,7 +132,8 @@ def two_factor_confirm():
         token = form.token.data.strip()
         user = current_user
         totp = pyotp.TOTP(user.totp_secret)
-        if totp.verify(token):
+        # Use valid_window=1 to allow tokens from ±30 seconds (current and adjacent windows)
+        if totp.verify(token, valid_window=1):
             user.two_factor_enabled = True
             authentication_service.repository.session.add(user)
             authentication_service.repository.session.commit()

@@ -66,8 +66,6 @@ class SessionDevice(db.Model):
         return f"<SessionDevice {self.get_display_name()}>"
 
     def get_display_name(self):
-        if self.custom_name:
-            return self.custom_name
         return f"{self.browser} en {self.os}"
 
     def to_dict(self):
@@ -75,7 +73,6 @@ class SessionDevice(db.Model):
             'id': self.id,
             'session_token': self.session_token,
             'display_name': self.get_display_name(),
-            'custom_name': self.custom_name,
             'default_name': f"{self.browser} en {self.os}",
             'device_type': self.device_type,
             'browser': self.browser,
