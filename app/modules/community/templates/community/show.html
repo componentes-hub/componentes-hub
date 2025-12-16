@@ -31,9 +31,9 @@
                     
                     {% if is_admin %}
                     <div class="d-flex gap-2">
-                        <a href="{{ url_for('community.update_community', community_id=community.id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
+                        <a href="{{ url_for('community.update_community', community_id=community.id) }}" class="btn btn-success btn-sm">Edit</a>
                         <form method="POST" action="{{ url_for('community.delete_community', community_id=community.id) }}" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            <button type="submit" class="btn btn-warning btn-sm">Delete</button>
                         </form>
                     </div>
                     {% endif %}
