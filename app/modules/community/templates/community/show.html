@@ -31,9 +31,9 @@
                     
                     {% if is_admin %}
                     <div class="d-flex gap-2">
-                        <a href="{{ url_for('community.update_community', community_id=community.id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
+                        <a href="{{ url_for('community.update_community', community_id=community.id) }}" class="btn btn-success btn-sm">Edit</a>
                         <form method="POST" action="{{ url_for('community.delete_community', community_id=community.id) }}" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            <button type="submit" class="btn btn-warning btn-sm">Delete</button>
                         </form>
                     </div>
                     {% endif %}
@@ -56,7 +56,7 @@
     <div class="row">
         <div class="col-12 col-lg-6">
             <div class="card shadow-sm mb-4">
-                <div class="card-header card-dark">
+                <div class="card-header text-white" style="background-color: #344036;">
                     <h5 class="card-title mb-0 text-white">Datasets</h5>
                 </div>
                 <div class="card-body">
@@ -119,7 +119,7 @@
         <!-- Sección de usuarios y seguidores -->
         <div class="col-12 col-lg-6">
             <div class="card shadow-sm mb-4">
-                <div class="card-header card-dark">
+                <div class="card-header text-white" style="background-color: #538f56;">
                     <h5 class="card-title mb-0 text-white">Members</h5>
                 </div>
                 <div class="card-body">
@@ -138,7 +138,7 @@
             </div>
             
             <div class="card shadow-sm">
-                <div class="card-header card-dark">
+                <div class="card-header text white " style="background-color: #4ce447;">
                     <h5 class="card-title mb-0 text-white">Followers</h5>
                 </div>
                 <div class="card-body">
